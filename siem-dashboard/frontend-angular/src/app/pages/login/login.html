@@ -1,0 +1,38 @@
+<div class="login-container">
+  <div class="login-card">
+    <div class="brand-section">
+      <h1>SIEM Lightweight</h1>
+      <p>Monitoramento de Tentativas de Invasão</p>
+    </div>
+
+    <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="login-form">
+      <div class="input-group">
+        <label for="username">Usuário</label>
+        <input
+          id="username"
+          type="text"
+          formControlName="username"
+          placeholder="Digite sua credencial"
+        />
+      </div>
+
+      <div class="input-group">
+        <label for="password">Senha</label>
+        <input
+          id="password"
+          type="password"
+          formControlName="password"
+          placeholder="Digite sua senha"
+        />
+      </div>
+
+      <div *ngIf="errorMessage" class="error-alert">
+        {{ errorMessage }}
+      </div>
+
+      <button type="submit" [disabled]="loginForm.invalid" class="btn-login">
+        Acessar Sistema
+      </button>
+    </form>
+  </div>
+</div>

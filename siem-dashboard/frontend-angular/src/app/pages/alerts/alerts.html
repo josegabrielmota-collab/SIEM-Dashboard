@@ -1,0 +1,163 @@
+<div class="alerts-shell">
+  <header class="topbar">
+    <div class="brand">
+      <span class="brand-mark">◉</span>
+      <div>
+        <strong>SIEM Lightweight</strong>
+        <small>Central de alertas Wazuh</small>
+      </div>
+    </div>
+
+    <nav class="nav-links">
+      <a routerLink="/dashboard">Visão geral</a>
+      <a routerLink="/alertas" class="active">Alertas</a>
+      <a routerLink="/sobre">Sobre</a>
+    </nav>
+
+    <button type="button" class="btn ghost" (click)="logout()">Sair</button>
+  </header>
+
+  <main class="content">
+    <section class="page-head">
+      <div>
+        <p class="eyebrow">Investigação</p>
+        <h1>Tabela de alertas</h1>
+        <p>Use os filtros para procurar ataques por severidade, host, IP, regra, MITRE ou texto do log.</p>
+      </div>
+
+      <form class="filters" (ngSubmit)="loadAlerts()">
+        <label>
+          Últimas horas
+          <input type="number" name="lastHours" min="1" max="720" [(ngModel)]="lastHours" />
+        </label>
+        <label>
+          Severidade mínima
+          <input type="number" name="minLevel" min="0" max="16" [(ngModel)]="minLevel" />
+        </label>
+        <label>
+          Quantidade
+          <input type="number" name="size" min="1" max="500" [(ngModel)]="size" />
+        </label>
+        <label class="search-field">
+          Buscar no resultado
+          <input type="search" name="searchTerm" placeholder="Ex.: ssh, root, IP, agente..." [(ngModel)]="searchTerm" />
+        </label>
+        <div class="quick-filters">
+          <button type="button" class="btn chip" [class.active]="minLevel === 0" (click)="setMinLevel(0)">Todos</button>
+          <button type="button" class="btn chip" [class.active]="minLevel === 4" (click)="setMinLevel(4)">Médio+</button>
+          <button type="button" class="btn chip" [class.active]="minLevel === 7" (click)="setMinLevel(7)">Alto+</button>
+          <button type="button" class="btn chip" [class.active]="minLevel === 12" (click)="setMinLevel(12)">Crítico</button>
+        </div>
+        <button type="submit" class="btn primary" [disabled]="loading">
+          {{ loading ? 'Carregando...' : 'Buscar alertas' }}
+        </button>
+      </form>
+    </section>
+
+    <section *ngIf="errorMessage" class="warning-card">
+      {{ errorMessage }}
+    </section>
+
+    <section class="alert-kpis">
+      <article>
+        <span>Retornados pelo Wazuh</span>
+        <strong>{{ total }}</strong>
+      </article>
+      <article>
+        <span>Visíveis na tabela</span>
+        <strong>{{ filteredAlerts.length }}</strong>
+      </article>
+      <article>
+        <span>Críticos visíveis</span>
+        <strong>{{ criticalVisible }}</strong>
+      </article>
+      <article>
+        <span>Altos visíveis</span>
+        <strong>{{ highVisible }}</strong>
+      </article>
+      <article>
+        <span>Agentes visíveis</span>
+        <strong>{{ agentsVisible }}</strong>
+      </article>
+      <article>
+        <span>Top IP origem</span>
+        <strong>{{ topSourceIpVisible }}</strong>
+      </article>
+    </section>
+
+    <section class="panel">
+      <div *ngIf="filteredAlerts.length === 0" class="empty">
+        Nenhum alerta encontrado para os filtros atuais.
+      </div>
+
+      <div class="table-wrapper" *ngIf="filteredAlerts.length > 0">
+        <table>
+          <thead>
+            <tr>
+              <th>Data/hora</th>
+              <th>Severidade</th>
+              <th>Descrição</th>
+              <th>Agente</th>
+              <th>Origem</th>
+              <th>Destino</th>
+              <th>Local</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            <ng-container *ngFor="let alert of filteredAlerts; trackBy: trackByAlertId">
+              <tr>
+                <td>{{ alert.timestamp | date: 'dd/MM/yyyy HH:mm:ss' }}</td>
+                <td>
+                  <span class="severity-pill" [ngClass]="getSeverityClass(alert.level)">
+                    {{ alert.level ?? '-' }} · {{ getSeverityText(alert.level) }}
+                  </span>
+                </td>
+                <td class="description-cell">{{ alert.description || 'Sem descrição' }}</td>
+                <td>
+                  <strong>{{ alert.agentName || 'Não informado' }}</strong>
+                  <small>{{ alert.agentIp || 'IP não informado' }}</small>
+                </td>
+                <td>{{ alert.srcIp || 'Não informado' }}</td>
+                <td>{{ alert.dstIp || 'Não informado' }}</td>
+                <td>{{ alert.location || '—' }}</td>
+                <td>
+                  <button type="button" class="btn details" (click)="toggleDetails(alert)">
+                    {{ isExpanded(alert) ? 'Fechar' : 'Detalhes' }}
+                  </button>
+                </td>
+              </tr>
+
+              <tr class="details-row" *ngIf="isExpanded(alert)">
+                <td colspan="8">
+                  <div class="details-grid">
+                    <div>
+                      <span>Grupos</span>
+                      <p>{{ alert.groups.join(', ') || 'Não informado' }}</p>
+                    </div>
+                    <div>
+                      <span>Tática MITRE</span>
+                      <p>{{ alert.mitreTactic.join(', ') || 'Não informado' }}</p>
+                    </div>
+                    <div>
+                      <span>Técnica MITRE</span>
+                      <p>{{ alert.mitreTechnique.join(', ') || 'Não informado' }}</p>
+                    </div>
+                    <div>
+                      <span>Manager</span>
+                      <p>{{ alert.managerName || 'Não informado' }}</p>
+                    </div>
+                    <div class="full-log">
+                      <span>Log completo</span>
+                      <pre>{{ alert.fullLog || 'Sem full_log retornado pelo Wazuh.' }}</pre>
+                    </div>
+                  </div>
+                </td>
+              </tr>
+            </ng-container>
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+</div>

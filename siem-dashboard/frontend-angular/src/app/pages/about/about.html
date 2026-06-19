@@ -1,0 +1,294 @@
+<div class="dashboard-container">
+  <header class="dashboard-header">
+    <div class="logo">
+      <span class="radar-icon"></span>
+      <span class="highlight">SIEM</span> Lightweight
+    </div>
+
+    <nav class="nav-links">
+      <a routerLink="/dashboard">Visão geral</a>
+      <a routerLink="/alertas">Alertas</a>
+      <a routerLink="/sobre" class="active">Sobre</a>
+    </nav>
+
+    <div class="system-pulse-indicator">
+      <span class="pulse-dot"></span>
+      <span class="pulse-text">CONTEÚDO DO TCC</span>
+    </div>
+
+    <div class="user-info">
+      <button class="btn-logout" (click)="logout()">Finalizar Sessão</button>
+    </div>
+  </header>
+
+<main class="dashboard-content">
+    <section class="tcc-summary panel intro-card">
+      <div class="card-header-tech">
+        <h1>Sobre o TCC — INTRODUÇÃO</h1>
+        <span class="tech-tag">UCSAL • Pág. 4</span>
+      </div>
+      <p>
+        A digitalização acelerada das empresas trouxe grandes avanços, mas também aumentou a
+        exposição a crimes cibernéticos. Como os processos e dados agora são
+        majoritariamente digitais, ataques de força bruta, vazamentos e acessos indevidos
+        tornaram-se mais comuns. Nesse cenário, a segurança da informação deixou de ser
+        um custo extra para se tornar um pilar estratégico, essencial para que as operações da
+        empresa não parem, tendo como foco principal a manutenção da tríade CID (Confidencialidade,
+        Integridade e Disponibilidade).
+      </p>
+      <p>
+        Segundo Stallings (2017), a segurança deve ser vista como um processo contínuo que protege o
+        hardware, o software e os dados contra diversas ameaças. Complementarmente,
+        Araujo e Rossi (2020) destacam que administradores de rede não conseguem vigiar toda a
+        infraestrutura sozinhos, tornando o gerenciamento automatizado indispensável.
+        Para resolver isso, utilizam-se sistemas SIEM, que reúnem e analisam registros (logs) para
+        identificar invasões em tempo real.
+      </p>
+      <p>
+        Apesar de úteis, os sistemas tradicionais (como QRadar, Splunk e Microsoft Sentinel) são
+        complexos, caros e exigem servidores potentes. Além disso, conforme aponta o
+        Gartner (2023), costumam gerar um excesso de avisos, o que causa a chamada "fadiga de
+        alertas". Diante desses obstáculos, este trabalho justifica-se ao propor um
+        Dashboard baseado em uma arquitetura de SIEM lightweight com ferramentas open-source,
+        reduzindo o ruído técnico e focando nos logs mais críticos para organizações sem orçamento
+        para soluções comerciais.
+      </p>
+    </section>
+
+    <h2 class="section-title">Capítulo 2 — DESENVOLVIMENTO: IMPLEMENTAÇÃO DA PLATAFORMA SIEM</h2>
+
+    <div class="architecture-grid">
+      <div class="interactive-card panel">
+        <div class="card-icon">🖥️</div>
+        <span class="tech-tag" style="float: right">Seção 2.1 | Pág. 6</span>
+        <h3>O que é o Dashboard de Monitoramento de Tentativas de Invasão?</h3>
+        <p class="card-desc">
+          Constitui a camada de apresentação da plataforma SIEM desenvolvida pelo grupo.
+        </p>
+        <p>
+          Por meio da integração entre o Wazuh e seu painel de visualização nativo, os eventos de
+          segurança são categorizados por níveis de gravidade e exibidos de forma centralizada. Isso garante que o administrador identifique, em tempo real, padrões de ataque que
+          seriam impossíveis de perceber na análise manual de linhas de log isoladas.
+        </p>
+        <ul class="tech-list">
+          <li>
+            <strong>Ataques de Força Bruta:</strong> Monitoramento de múltiplas tentativas de login
+            falhas (SSH ou RDP) em curto período.
+          </li>
+          <li>
+            <strong>Detecção de Malware e Rootkits:</strong> Alertas gerados quando assinaturas
+            maliciosas são encontradas nos endpoints.
+          </li>
+          <li>
+            <strong>Monitoramento de Integridade (FIM):</strong> Gráficos demonstrando alterações
+            não autorizadas em arquivos críticos.
+          </li>
+          <li>
+            <strong>Geolocalização de Ataques:</strong> Mapas apontando a origem IP de tentativas de
+            invasão de regiões inesperadas.
+          </li>
+        </ul>
+      </div>
+
+      <div class="interactive-card panel">
+        <div class="card-icon">⚡</div>
+        <span class="tech-tag" style="float: right">Seção 2.1.1 | Pág. 6</span>
+        <h3>Por que ele é Lightweight?</h3>
+        <p class="card-desc">
+          Contraponto às plataformas de alto custo de licenciamento ou operadas estritamente em
+          nuvem paga.
+        </p>
+        <p>
+          A abordagem lightweight utilizada utiliza exclusivamente ferramentas open source, sendo o
+          Wazuh a peça central da arquitetura. O sistema é otimizado para operar em
+          hardware local acessível sem comprometer a detecção , eliminando taxas de
+          licenciamento de ferramentas pagas  e focando nos indicadores críticos
+          necessários para a tomada de decisão ágil.
+        </p>
+        <div class="performance-indicator">
+          <span>Uso Residuário de CPU do Agente</span>
+          <div class="progress-bar">
+            <div class="progress-fill fill-green" style="width: 1%"></div>
+          </div>
+        </div>
+        <p style="font-size: 11px; color: #94a3b8; margin-top: 8px">
+          * Os agentes coletam dados de forma contínua e multiplataforma (Windows e Linux).
+        </p>
+      </div>
+
+      <div class="interactive-card panel">
+        <div class="card-icon">🏗️</div>
+        <span class="tech-tag" style="float: right">Seção 2.2 | Pág. 7</span>
+        <h3>Planejamento e Arquitetura do Sistema</h3>
+        <p class="card-desc">
+          Topologia modular montada sobre máquinas virtuais através do Oracle VM VirtualBox.
+        </p>
+        <p>
+          A máquina central opera sobre um sistema Linux Ubuntu Server LTS com instalação All-in-One
+          unificada. Os componentes estruturais dividem-se em:
+        </p>
+        <ul class="tech-list">
+          <li>
+            <strong>Wazuh Manager:</strong> Componente central encarregado de receber, analisar,
+            decodificar e correlacionar os eventos.
+          </li>
+          <li>
+            <strong>Wazuh Indexer:</strong> Motor de busca responsável por indexar e guardar os
+            alertas para fins analíticos.
+          </li>
+          <li>
+            <strong>Front-End Proprietário:</strong> Camada visual externa desenvolvida
+            especificamente para consumir e renderizar estes dados estruturados.
+          </li>
+        </ul>
+        <div class="performance-indicator">
+          <span>Configuração Ajustada da VM (6 vCPUs / 16 GB RAM / 50 GB HD)</span>
+          <div class="progress-bar">
+            <div class="progress-fill fill-blue" style="width: 100%"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="pipeline-flow" style="margin-top: 24px">
+      <div class="flow-step panel">
+        <span class="tech-tag" style="float: right">Seção 2.2.1 • Pág. 8</span>
+        <div class="step-num">🧪</div>
+        <h3>Delimitação do Ambiente de Testes</h3>
+        <p>
+          O dimensionamento (6 vCPUs, 16 GB de RAM e 50 GB de disco) serve para validar a
+          viabilidade técnica do protótipo e evitar travamentos na indexação gráfica. O escopo compreende uma rede virtual isolada geograficamente via SDN com a
+          tecnologia ZeroTier (faixa 10.56.x.x) , interligando servidores de alvos Linux
+          e estações de trabalho físicas Windows 10 e 11 executando agentes ativos.
+        </p>
+      </div>
+
+      <div class="flow-step panel">
+        <span class="tech-tag" style="float: right">Seção 2.3 • Pág. 8</span>
+        <div class="step-num">📋</div>
+        <h3>Metodologia Experimental e Prática</h3>
+        <p>
+          A pesquisa adota uma abordagem puramente experimental estruturada em quatro etapas
+          consecutivas: a preparação e otimização da infraestrutura (como desativação de recursos do
+          Windows e espelhos de repositório) , a implementação automatizada e ajuste de
+          versões estáveis (versão 4.12) , a sincronização e troubleshooting de rede de
+          serviços (Modo Bridge e SSH) , culminando na execução de ataques simulados
+          controlados.
+        </p>
+      </div>
+    </div>
+
+    <div class="architecture-grid" style="margin-top: 24px">
+      <div class="interactive-card panel">
+        <div class="card-icon">📈</div>
+        <span class="tech-tag" style="float: right">Seção 2.4 | Pág. 10</span>
+        <h3>Resultados Obtidos e Validações</h3>
+        <p class="card-desc">
+          Testes analíticos que comprovaram a sensibilidade da plataforma e mitigaram a dependência
+          de logs brutos manuais.
+        </p>
+        <p>
+          O motor do Wazuh mapeou e registrou com sucesso em tempo real três cenários críticos de
+          incidentes: as falhas consecutivas do ataque de Força Bruta via SSH (`ssh root@...`)
+          , a criação clandestina interna de um usuário malicioso (`sudo useradd
+          hacker`) , e as tentativas anômalas de leitura não autorizada de privilégios a
+          bases do sistema (`cat /etc/shadow`).
+        </p>
+        <div class="performance-indicator">
+          <span>Eficiência de Detecção em Tempo Real</span>
+          <div class="progress-bar">
+            <div class="progress-fill fill-orange" style="width: 100%"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="interactive-card panel">
+        <div class="card-icon">⚠️</div>
+        <span class="tech-tag" style="float: right">Seção 2.5 | Pág. 11</span>
+        <h3>Desafios de Instalação e Soluções</h3>
+        <p class="card-desc">
+          Obstáculos técnicos complexos que exigiram maturidade em troubleshooting durante o
+          setup.
+        </p>
+        <ul class="tech-list">
+          <li>
+            <strong>Isolamento de Núcleo do Windows:</strong> A alocação de núcleos disparou um
+            bloqueio de Integridade da Memória do host Windows, mitigado ajustando as configurações
+            de segurança do dispositivo.
+          </li>
+          <li>
+            <strong>Erros de Scripts Genéricos:</strong> scripts automatizados brutos corromperam
+            pacotes de instalação; solucionado apontando o download diretamente para a versão
+            estável 4.12.
+          </li>
+          <li>
+            <strong>Travamentos de Tela e Repositórios:</strong> Corrigidos expandindo a memória de
+            vídeo para 128 MB e redirecionando espelhos lentos locais para o servidor global via
+            editor sed.
+          </li>
+        </ul>
+      </div>
+    </div>
+
+    <h2 class="section-title">Capítulo 3 — CONCLUSÃO</h2>
+    <section class="tcc-summary panel" style="border-left: 4px solid #4ade80">
+      <div class="card-header-tech">
+        <h1>Conclusões Finais e Descobertas Técnicas</h1>
+        <span class="tech-tag">UCSAL • Pág. 13</span>
+      </div>
+      <p>
+        O presente trabalho cumpriu com êxito o objetivo de demonstrar a viabilidade técnica de
+        estabelecer um perímetro de monitoramento robusto e centralizado sem custos proibitivos
+        usando o open source Wazuh. O laboratório experimental desmistificou o
+        planejamento inicial teórico, provando de forma empírica que o dimensionamento inicial de 8
+        GB de RAM gerava lentidão, exigindo o teto de <strong>6 vCPUs e 16 GB de RAM</strong> no
+        servidor local para garantir buscas fluidas no indexador e renderização ágil da
+        console.
+      </p>
+      <p>
+        A camada visual integrada consolida logs complexos e abstratos de texto em alertas práticos
+        categorizados de tomada de decisão estratégica. Como propostas para estudos
+        futuros, recomenda-se avaliar o comportamento do armazenamento de 50 GB a longo prazo sob
+        regras estritas de rotação e retenção de dados , além de implementar mecanismos
+        automáticos de <strong>Resposta Ativa (Active Response)</strong> para o bloqueio e mitigação dinâmica e
+        preditiva de IPs atacantes.
+      </p>
+    </section>
+
+    <h2 class="section-title">Métricas do Laboratório do TCC</h2>
+    <div class="status-grid">
+      <div class="status-box panel safe-neon">
+        <div class="box-header">
+          <h4>Endpoints do Lab</h4>
+          <span class="pulse-glow green"></span>
+        </div>
+        <div class="number">03</div>
+        <span class="status-badge">Hosts Físicos e Virtuais Ativos</span>
+      </div>
+      <div class="status-box panel alert-neon">
+        <div class="box-header">
+          <h4>Vulnerabilidades Mapeadas</h4>
+          <span class="pulse-glow red"></span>
+        </div>
+        <div class="number">03</div>
+        <span class="status-badge">Força Bruta, Usuário Hacker e Leitura Shadow</span>
+      </div>
+      <div class="status-box panel info-neon">
+        <div class="box-header">
+          <h4>Memória VM Alocada</h4>
+          <span class="pulse-glow blue"></span>
+        </div>
+        <div class="number">16GB</div>
+        <span class="status-badge">Capacidade para Ingestão Fluida</span>
+      </div>
+      <div class="status-box panel total-neon">
+        <div class="box-header">
+          <h4>Processadores Utilizados</h4>
+          <span class="pulse-glow purple"></span>
+        </div>
+        <div class="number">06</div>
+        <span class="status-badge">vCPUs de Processamento Ativo</span>
+      </div>
+    </div>
+  </main>
+</div>

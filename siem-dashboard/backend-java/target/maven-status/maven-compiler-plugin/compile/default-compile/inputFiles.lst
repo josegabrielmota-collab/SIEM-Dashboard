@@ -1,0 +1,12 @@
+C:\Dev\Faculdade\TCC\siem-dashboard\backend-java\src\main\java\com\tcc\wazuhdashboard\config\CorsConfig.java
+C:\Dev\Faculdade\TCC\siem-dashboard\backend-java\src\main\java\com\tcc\wazuhdashboard\config\WazuhProperties.java
+C:\Dev\Faculdade\TCC\siem-dashboard\backend-java\src\main\java\com\tcc\wazuhdashboard\config\WazuhRestTemplateConfig.java
+C:\Dev\Faculdade\TCC\siem-dashboard\backend-java\src\main\java\com\tcc\wazuhdashboard\controller\WazuhController.java
+C:\Dev\Faculdade\TCC\siem-dashboard\backend-java\src\main\java\com\tcc\wazuhdashboard\dto\AlertDto.java
+C:\Dev\Faculdade\TCC\siem-dashboard\backend-java\src\main\java\com\tcc\wazuhdashboard\dto\AlertListResponse.java
+C:\Dev\Faculdade\TCC\siem-dashboard\backend-java\src\main\java\com\tcc\wazuhdashboard\dto\CountDto.java
+C:\Dev\Faculdade\TCC\siem-dashboard\backend-java\src\main\java\com\tcc\wazuhdashboard\dto\CountListResponse.java
+C:\Dev\Faculdade\TCC\siem-dashboard\backend-java\src\main\java\com\tcc\wazuhdashboard\exception\GlobalExceptionHandler.java
+C:\Dev\Faculdade\TCC\siem-dashboard\backend-java\src\main\java\com\tcc\wazuhdashboard\exception\WazuhApiException.java
+C:\Dev\Faculdade\TCC\siem-dashboard\backend-java\src\main\java\com\tcc\wazuhdashboard\service\WazuhService.java
+C:\Dev\Faculdade\TCC\siem-dashboard\backend-java\src\main\java\com\tcc\wazuhdashboard\WazuhDashboardApplication.java

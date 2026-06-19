@@ -1,0 +1,203 @@
+<div class="dashboard-shell">
+  <header class="topbar">
+    <div class="brand">
+      <span class="brand-mark">◉</span>
+      <div>
+        <strong>SIEM Lightweight</strong>
+        <small>Dashboard Wazuh</small>
+      </div>
+    </div>
+
+    <nav class="nav-links">
+      <a routerLink="/dashboard" class="active">Visão geral</a>
+      <a routerLink="/alertas">Alertas</a>
+      <a routerLink="/sobre">Sobre</a>
+    </nav>
+
+    <div class="header-actions">
+      <span class="connection" [class.ok]="backendOnline && wazuhOnline">
+        <span class="dot"></span>
+        {{ backendOnline && wazuhOnline ? 'Wazuh conectado' : 'Verificar conexão' }}
+      </span>
+      <button type="button" class="btn ghost" (click)="logout()">Sair</button>
+    </div>
+  </header>
+
+  <main class="content">
+    <section class="hero-card">
+      <div>
+        <p class="eyebrow">Monitoramento de tentativas de invasão</p>
+        <h1>Alertas do Wazuh em uma visão mais simples para tomada de decisão</h1>
+        <p class="hero-copy">
+          O frontend consome o backend Java em <strong>{{ apiUrl }}</strong>, que por sua vez consulta o Wazuh Indexer.
+        </p>
+      </div>
+
+      <form class="filters" (ngSubmit)="loadDashboard()">
+        <label>
+          Últimas horas
+          <input type="number" name="lastHours" min="1" max="720" [(ngModel)]="lastHours" />
+        </label>
+        <label>
+          Severidade mínima
+          <input type="number" name="minLevel" min="0" max="16" [(ngModel)]="minLevel" />
+        </label>
+        <label>
+          Quantidade
+          <input type="number" name="size" min="1" max="500" [(ngModel)]="size" />
+        </label>
+        <button type="submit" class="btn primary" [disabled]="loading">
+          {{ loading ? 'Atualizando...' : 'Atualizar' }}
+        </button>
+      </form>
+    </section>
+
+    <section *ngIf="errorMessage" class="warning-card">
+      {{ errorMessage }}
+    </section>
+
+    <section class="kpi-grid">
+      <article class="kpi-card blue">
+        <span>Total no período</span>
+        <strong>{{ totalAlerts }}</strong>
+        <small>{{ periodLabel }}</small>
+      </article>
+      <article class="kpi-card red">
+        <span>Críticos</span>
+        <strong>{{ criticalAlerts }}</strong>
+        <small>Rule level maior ou igual a 12</small>
+      </article>
+      <article class="kpi-card orange">
+        <span>Altos</span>
+        <strong>{{ highAlerts }}</strong>
+        <small>Rule level entre 7 e 11</small>
+      </article>
+      <article class="kpi-card purple">
+        <span>Agentes com alerta</span>
+        <strong>{{ monitoredAgents }}</strong>
+        <small>Hosts retornados no período</small>
+      </article>
+      <article class="kpi-card green">
+        <span>Top IP origem</span>
+        <strong>{{ topSourceIp }}</strong>
+        <small>IP mais frequente nos alertas</small>
+      </article>
+    </section>
+
+    <section class="severity-summary">
+      <article>
+        <span>Baixos</span>
+        <strong>{{ lowAlerts }}</strong>
+      </article>
+      <article>
+        <span>Médios</span>
+        <strong>{{ mediumAlerts }}</strong>
+      </article>
+      <article>
+        <span>Altos</span>
+        <strong>{{ highAlerts }}</strong>
+      </article>
+      <article>
+        <span>Críticos</span>
+        <strong>{{ criticalAlerts }}</strong>
+      </article>
+    </section>
+
+    <section class="panels-grid">
+      <article class="panel">
+        <div class="panel-title">
+          <h2>Alertas por severidade</h2>
+          <span>{{ periodLabel }}</span>
+        </div>
+        <div *ngIf="severityData.length === 0" class="empty">Sem dados de severidade.</div>
+        <div class="bar-list" *ngIf="severityData.length > 0">
+          <div class="bar-row" *ngFor="let item of severityData; trackBy: trackByLabel">
+            <span>Nível {{ item.label }}</span>
+            <div class="bar-track"><div class="bar-fill" [style.width]="getBarWidth(item.count, severityData)"></div></div>
+            <strong>{{ item.count }}</strong>
+          </div>
+        </div>
+      </article>
+
+      <article class="panel">
+        <div class="panel-title">
+          <h2>Top regras</h2>
+          <span>{{ periodLabel }}</span>
+        </div>
+        <div *ngIf="topRules.length === 0" class="empty">Sem regras para exibir.</div>
+        <div class="compact-list" *ngIf="topRules.length > 0">
+          <div class="compact-row" *ngFor="let item of topRules; trackBy: trackByLabel">
+            <span>{{ item.label }}</span>
+            <strong>{{ item.count }}</strong>
+          </div>
+        </div>
+      </article>
+
+      <article class="panel">
+        <div class="panel-title">
+          <h2>Alertas por agente</h2>
+          <span>{{ periodLabel }}</span>
+        </div>
+        <div *ngIf="agents.length === 0" class="empty">Sem agentes para exibir.</div>
+        <div class="compact-list" *ngIf="agents.length > 0">
+          <div class="compact-row" *ngFor="let item of agents; trackBy: trackByLabel">
+            <span>{{ item.label }}</span>
+            <strong>{{ item.count }}</strong>
+          </div>
+        </div>
+      </article>
+
+      <article class="panel">
+        <div class="panel-title">
+          <h2>Top IPs de origem</h2>
+          <span>{{ periodLabel }}</span>
+        </div>
+        <div *ngIf="sourceIps.length === 0" class="empty">Sem IPs de origem para exibir.</div>
+        <div class="compact-list" *ngIf="sourceIps.length > 0">
+          <div class="compact-row" *ngFor="let item of sourceIps; trackBy: trackByLabel">
+            <span>{{ item.label }}</span>
+            <strong>{{ item.count }}</strong>
+          </div>
+        </div>
+      </article>
+    </section>
+
+    <section class="panel table-panel">
+      <div class="panel-title">
+        <h2>Últimos alertas</h2>
+        <a routerLink="/alertas">Ver tabela completa</a>
+      </div>
+
+      <div *ngIf="alerts.length === 0" class="empty">Nenhum alerta encontrado para os filtros atuais.</div>
+
+      <div class="table-wrapper" *ngIf="alerts.length > 0">
+        <table>
+          <thead>
+            <tr>
+              <th>Horário</th>
+              <th>Nível</th>
+              <th>Descrição</th>
+              <th>Agente</th>
+              <th>IP origem</th>
+              <th>MITRE</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let alert of alerts; trackBy: trackByAlertId">
+              <td>{{ alert.timestamp | date: 'dd/MM/yyyy HH:mm:ss' }}</td>
+              <td>
+                <span class="severity-pill" [ngClass]="getSeverityClass(alert.level)">
+                  {{ alert.level ?? '-' }} · {{ getSeverityText(alert.level) }}
+                </span>
+              </td>
+              <td>{{ alert.description || 'Sem descrição' }}</td>
+              <td>{{ alert.agentName || 'Não informado' }}</td>
+              <td>{{ alert.srcIp || 'Não informado' }}</td>
+              <td>{{ alert.mitreTechnique.join(', ') || '—' }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+</div>

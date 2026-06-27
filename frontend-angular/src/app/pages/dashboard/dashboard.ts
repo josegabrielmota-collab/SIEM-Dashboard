@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { catchError, forkJoin, of } from 'rxjs';
@@ -33,6 +33,7 @@ export class DashboardComponent implements OnInit {
   constructor(
     private wazuhApi: WazuhApiService,
     private router: Router,
+    private cdr: ChangeDetectorRef,
   ) {}
 
   ngOnInit(): void {
@@ -88,9 +89,12 @@ export class DashboardComponent implements OnInit {
       },
       error: () => {
         this.errorMessage = 'Erro inesperado ao carregar o dashboard.';
+        this.loading = false;
+        this.cdr.detectChanges();
       },
       complete: () => {
         this.loading = false;
+        this.cdr.detectChanges();
       },
     });
   }

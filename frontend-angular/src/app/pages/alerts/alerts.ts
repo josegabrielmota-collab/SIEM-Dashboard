@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { catchError, of } from 'rxjs';
@@ -29,6 +29,7 @@ export class AlertsComponent implements OnInit {
   constructor(
     private wazuhApi: WazuhApiService,
     private router: Router,
+    private cdr: ChangeDetectorRef,
   ) {}
 
   ngOnInit(): void {
@@ -55,6 +56,7 @@ export class AlertsComponent implements OnInit {
         this.total = response.total;
         this.alerts = response.alerts;
         this.loading = false;
+        this.cdr.detectChanges();
       });
   }
 

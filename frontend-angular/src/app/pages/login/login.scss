@@ -1,108 +1,294 @@
-.login-container {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  min-height: 100vh;
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+@import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700;800;900&family=Barlow:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap');
 
-  background-color: #0d1117;
-  background-image: url('https://images.unsplash.com/photo-1525547719571-a2d4ac8945e2?q=80&w=1920&auto=format&fit=crop');
-  background-size: cover;
-  background-position: center;
-  background-repeat: no-repeat;
-}
-
-.login-card {
-  background-color: rgba(22, 27, 34, 0.85);
-  border: 1px solid rgba(48, 54, 61, 0.5);
-  border-radius: 8px;
-  padding: 40px;
+:host {
+  display: block;
   width: 100%;
-  max-width: 400px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
+  height: 100%;
 }
 
+/* ── Shell ──────────────────────────────────────────── */
+.login-shell {
+  position: relative;
+  min-height: 100vh;
+  width: 100%;
+  background: #050508;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  font-family: 'Barlow', sans-serif;
+}
+
+/* ── Canvas 3D ───────────────────────────────────────── */
+.bg-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0.6;
+}
+
+/* ── Partículas ──────────────────────────────────────── */
+.particles { position: absolute; inset: 0; pointer-events: none; }
+
+.particle {
+  position: absolute;
+  border-radius: 50%;
+  background: #00d4ff;
+  opacity: 25;
+  animation: float-particle linear infinite;
+
+  &:nth-child(odd)  { background: #a78bfa; }
+  &:nth-child(3n)   { background: #3dffa0; }
+}
+
+@keyframes float-particle {
+  0%   { opacity: 0;    transform: translateY(0) scale(0); }
+  10%  { opacity: 0.4; }
+  90%  { opacity: 0.2; }
+  100% { opacity: 0;    transform: translateY(-100vh) scale(1.5); }
+}
+
+/* ── Card ────────────────────────────────────────────── */
+.login-card {
+  position: relative;
+  z-index: 10;
+  width: 100%;
+  max-width: 420px;
+  margin: 24px;
+  background: rgba(13, 19, 33, 0.85);
+  border: 1px solid rgba(0, 212, 255, 0.15);
+  border-radius: 24px;
+  padding: 44px 40px 36px;
+  backdrop-filter: blur(24px);
+  box-shadow:
+    0 0 0 1px rgba(0,212,255,0.05),
+    0 32px 80px rgba(0,0,0,0.5),
+    inset 0 1px 0 rgba(255,255,255,0.05);
+  animation: card-in 0.7s cubic-bezier(0.16, 1, 0.3, 1) both;
+
+  &.shake {
+    animation: shake 0.4s ease;
+  }
+}
+
+@keyframes card-in {
+  from { opacity: 0; transform: translateY(32px) scale(0.97); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  20%       { transform: translateX(-8px); }
+  40%       { transform: translateX(8px); }
+  60%       { transform: translateX(-6px); }
+  80%       { transform: translateX(6px); }
+}
+
+/* Glow de fundo do card */
+.card-glow {
+  position: absolute;
+  top: -60px; left: 50%;
+  transform: translateX(-50%);
+  width: 200px; height: 200px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(0,212,255,0.15) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+/* ── Brand ───────────────────────────────────────────── */
 .brand-section {
   text-align: center;
-  margin-bottom: 30px;
-
-  h1 {
-    color: #58a6ff;
-    margin: 0 0 10px;
-    font-size: 24px;
-  }
-
-  p {
-    color: #8b949e;
-    margin: 0;
-    font-size: 14px;
-  }
+  margin-bottom: 36px;
 }
 
+.brand-icon {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 16px;
+  animation: spin-slow 5s linear infinite;
+}
+
+@keyframes spin-slow {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
+.brand-section h1 {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 28px;
+  font-weight: 900;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: #f0f2f7;
+  margin: 0 0 6px;
+}
+
+.brand-section p {
+  font-size: 12px;
+  color: #6b7280;
+  letter-spacing: 0.5px;
+  margin: 0;
+}
+
+/* ── Form ────────────────────────────────────────────── */
 .login-form {
   display: flex;
   flex-direction: column;
+  gap: 24px;
 }
 
+/* ── Input group ─────────────────────────────────────── */
 .input-group {
-  margin-bottom: 20px;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
 
   label {
-    display: block;
-    color: #c9d1d9;
-    margin-bottom: 8px;
-    font-size: 14px;
-    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: #6b7280;
+    transition: color 0.2s ease;
   }
 
   input {
-    width: 100%;
-    padding: 10px 12px;
-    background-color: #0d1117;
-    border: 1px solid #30363d;
-    border-radius: 6px;
-    color: #c9d1d9;
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 10px;
+    color: #f0f2f7;
+    font-family: 'JetBrains Mono', monospace;
     font-size: 14px;
-    box-sizing: border-box;
+    padding: 13px 16px;
+    width: 100%;
+    transition: all 0.2s ease;
+    outline: none;
+
+    &::placeholder { color: #374151; }
 
     &:focus {
-      outline: none;
-      border-color: #58a6ff;
-      box-shadow: 0 0 0 3px rgba(88, 166, 255, 0.3);
+      background: rgba(0,212,255,0.04);
+      border-color: rgba(0,212,255,0.35);
+      box-shadow: 0 0 0 3px rgba(0,212,255,0.08);
     }
   }
-}
 
-.error-alert {
-  background-color: rgba(248, 81, 73, 0.1);
-  color: #ff7b72;
-  border: 1px solid rgba(248, 81, 73, 0.4);
-  padding: 10px;
-  border-radius: 6px;
-  margin-bottom: 20px;
-  font-size: 13px;
-  text-align: center;
-}
-
-.btn-login {
-  background-color: #238636;
-  color: #ffffff;
-  border: none;
-  border-radius: 6px;
-  padding: 12px;
-  font-size: 16px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: background-color 0.2s ease;
-
-  &:hover:not(:disabled) {
-    background-color: #2ea043;
+  .input-line {
+    position: absolute;
+    bottom: 0; left: 16px; right: 16px;
+    height: 2px;
+    background: linear-gradient(90deg, #00d4ff, #a78bfa);
+    border-radius: 1px;
+    transform: scaleX(0);
+    transition: transform 0.3s ease;
+    transform-origin: left;
   }
 
+  &.focused {
+    label { color: #00d4ff; }
+    .input-line { transform: scaleX(1); }
+  }
+
+  &.filled label { color: #9ca3af; }
+}
+
+/* ── Error ───────────────────────────────────────────── */
+.error-alert {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 14px;
+  background: rgba(255,77,77,0.08);
+  border: 1px solid rgba(255,77,77,0.25);
+  border-radius: 10px;
+  color: #ff4d4d;
+  font-size: 13px;
+  animation: fade-in 0.2s ease;
+}
+
+@keyframes fade-in {
+  from { opacity: 0; transform: translateY(-4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ── Button ──────────────────────────────────────────── */
+.btn-login {
+  background: linear-gradient(135deg, #0891b2, #00d4ff);
+  border: 0;
+  border-radius: 12px;
+  color: #050508;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 15px;
+  font-weight: 800;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  padding: 15px;
+  width: 100%;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  position: relative;
+  overflow: hidden;
+  margin-top: 4px;
+
+  &::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, rgba(255,255,255,0.15), transparent);
+    opacity: 0;
+    transition: opacity 0.2s ease;
+  }
+
+  &:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(0,212,255,0.35);
+
+    &::before { opacity: 1; }
+  }
+
+  &:active:not(:disabled) { transform: translateY(0); }
+
   &:disabled {
-    background-color: #23863680;
+    opacity: 0.45;
     cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+  }
+
+  &.loading {
+    pointer-events: none;
+    opacity: 0.7;
+  }
+}
+
+.spinner-wrap {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.spinner {
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* ── Footer ──────────────────────────────────────────── */
+.login-footer {
+  margin-top: 24px;
+  text-align: center;
+
+  span {
+    font-size: 11px;
+    color: #374151;
+    letter-spacing: 0.5px;
   }
 }

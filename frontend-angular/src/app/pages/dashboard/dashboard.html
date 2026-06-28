@@ -1,203 +1,265 @@
 <div class="dashboard-shell">
-  <header class="topbar">
-    <div class="brand">
-      <span class="brand-mark">◉</span>
-      <div>
-        <strong>SIEM Lightweight</strong>
-        <small>Dashboard Wazuh</small>
-      </div>
+
+  <!-- ── Sidebar ─────────────────────────── -->
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <span class="logo-icon">◉</span>
+      <span class="logo-text">Nome da Empresa</span>
     </div>
 
-    <nav class="nav-links">
-      <a routerLink="/dashboard" class="active">Visão geral</a>
-      <a routerLink="/alertas">Alertas</a>
-      <a routerLink="/sobre">Sobre</a>
+    <nav class="sidebar-nav">
+      <a routerLink="/dashboard" class="nav-item active">Dashboard</a>
+      <a routerLink="/alertas"   class="nav-item">Alertas</a>
+      <a routerLink="/relatorio"     class="nav-item">Relatório</a>
     </nav>
+  </aside>
 
-    <div class="header-actions">
-      <span class="connection" [class.ok]="backendOnline && wazuhOnline">
-        <span class="dot"></span>
-        {{ backendOnline && wazuhOnline ? 'Wazuh conectado' : 'Verificar conexão' }}
-      </span>
-      <button type="button" class="btn ghost" (click)="logout()">Sair</button>
-    </div>
-  </header>
+  <!-- ── Main ───────────────────────────── -->
+  <div class="main-area">
 
-  <main class="content">
-    <section class="hero-card">
-      <div>
-        <p class="eyebrow">Monitoramento de tentativas de invasão</p>
-        <h1>Alertas do Wazuh em uma visão mais simples para tomada de decisão</h1>
-        <p class="hero-copy">
-          O frontend consome o backend Java em <strong>{{ apiUrl }}</strong>, que por sua vez consulta o Wazuh Indexer.
-        </p>
+    <!-- Topbar -->
+    <header class="topbar">
+      <div class="topbar-right">
+        <a routerLink="/sobre" class="btn-inicio">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/>
+            <polyline points="9 22 9 12 15 12 15 22"/>
+          </svg>
+          Início
+        </a>
+        <div class="avatar-menu" (click)="toggleUserMenu()" [class.open]="userMenuOpen">
+          <span class="user-icon">
+            <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
+              <circle cx="16" cy="16" r="15" stroke="currentColor" stroke-width="1.5"/>
+              <circle cx="16" cy="13" r="5" stroke="currentColor" stroke-width="1.5"/>
+              <path d="M6 27c0-4 4.5-7 10-7s10 3 10 7" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+            </svg>
+          </span>
+          <div class="user-dropdown" *ngIf="userMenuOpen">
+            <div class="dropdown-info">
+              <strong>admin</strong>
+              <span>Administrador</span>
+            </div>
+            <div class="dropdown-divider"></div>
+            <button class="dropdown-item logout" (click)="logout()">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/>
+                <polyline points="16 17 21 12 16 7"/>
+                <line x1="21" y1="12" x2="9" y2="12"/>
+              </svg>
+              Finalizar sessão
+            </button>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- ── Page center ─────────────────── -->
+    <main class="page-center">
+      <div class="dashboard-grid">
+
+        <!-- Card esquerdo: Gráfico donut -->
+        <div class="card donut-card reveal">
+          <p class="card-title">Registros das últimas 24hrs (Gráfico)</p>
+          <div class="donut-wrapper">
+            <svg class="donut-svg" viewBox="0 0 200 200">
+              <!-- Trilha de fundo -->
+              <circle cx="100" cy="100" r="72" fill="none" stroke="rgba(255,255,255,0.06)" stroke-width="28"/>
+              <!-- Fatia crítico -->
+              <circle cx="100" cy="100" r="72" fill="none"
+                stroke="#ff4d4d" stroke-width="28" stroke-dasharray="0 452"
+                [attr.stroke-dasharray]="getDonutDash(criticalAlerts)"
+                [attr.stroke-dashoffset]="getDonutOffset(0)"
+                stroke-linecap="butt" transform="rotate(-90 100 100)"/>
+              <!-- Fatia alto -->
+              <circle cx="100" cy="100" r="72" fill="none"
+                stroke="#ff8c42" stroke-width="28" stroke-dasharray="0 452"
+                [attr.stroke-dasharray]="getDonutDash(highAlerts)"
+                [attr.stroke-dashoffset]="getDonutOffset(criticalAlerts)"
+                stroke-linecap="butt" transform="rotate(-90 100 100)"/>
+              <!-- Fatia médio -->
+              <circle cx="100" cy="100" r="72" fill="none"
+                stroke="#00d4ff" stroke-width="28" stroke-dasharray="0 452"
+                [attr.stroke-dasharray]="getDonutDash(mediumAlerts)"
+                [attr.stroke-dashoffset]="getDonutOffset(criticalAlerts + highAlerts)"
+                stroke-linecap="butt" transform="rotate(-90 100 100)"/>
+              <!-- Fatia baixo -->
+              <circle cx="100" cy="100" r="72" fill="none"
+                stroke="#3dffa0" stroke-width="28" stroke-dasharray="0 452"
+                [attr.stroke-dasharray]="getDonutDash(lowAlerts)"
+                [attr.stroke-dashoffset]="getDonutOffset(criticalAlerts + highAlerts + mediumAlerts)"
+                stroke-linecap="butt" transform="rotate(-90 100 100)"/>
+              <!-- Centro -->
+              <circle cx="100" cy="100" r="52" fill="#0e1018"/>
+              <text x="100" y="95" text-anchor="middle" fill="#f0f2f7"
+                font-family="'Barlow Condensed', sans-serif"
+                font-size="28" font-weight="900">{{ totalAlerts }}</text>
+              <text x="100" y="114" text-anchor="middle" fill="#6b7280"
+                font-family="'Barlow', sans-serif" font-size="10">total</text>
+            </svg>
+
+            <!-- Legenda -->
+            <div class="donut-legend">
+              <div class="legend-item">
+                <span class="legend-dot" style="background:#ff4d4d"></span>
+                <span>Crítico</span>
+                <strong>{{ criticalAlerts }}</strong>
+              </div>
+              <div class="legend-item">
+                <span class="legend-dot" style="background:#ff8c42"></span>
+                <span>Alto</span>
+                <strong>{{ highAlerts }}</strong>
+              </div>
+              <div class="legend-item">
+                <span class="legend-dot" style="background:#00d4ff"></span>
+                <span>Médio</span>
+                <strong>{{ mediumAlerts }}</strong>
+              </div>
+              <div class="legend-item">
+                <span class="legend-dot" style="background:#3dffa0"></span>
+                <span>Baixo</span>
+                <strong>{{ lowAlerts }}</strong>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Card direito: Severidade por número -->
+        <div class="card sev-card reveal">
+          <div class="sev-card-head">
+            <p class="card-title">Registros das últimas 24hrs</p>
+            <button type="button" class="btn-update" (click)="loadDashboard()" [disabled]="loading">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M21 12a9 9 0 11-9-9 9 9 0 019 9z"/>
+                <path d="M21 3v6h-6"/>
+              </svg>
+              {{ loading ? 'Atualizando...' : 'Atualizar' }}
+            </button>
+          </div>
+
+          <!-- Filtros compactos -->
+          <form class="compact-filters" (ngSubmit)="loadDashboard()">
+            <label>
+              <span>Horas</span>
+              <input type="number" name="lastHours" min="1" max="720" [(ngModel)]="lastHours" />
+            </label>
+            <label>
+              <span>Nível mín.</span>
+              <input type="number" name="minLevel" min="0" max="16" [(ngModel)]="minLevel" />
+            </label>
+            <label>
+              <span>Qtd.</span>
+              <input type="number" name="size" min="1" max="500" [(ngModel)]="size" />
+            </label>
+          </form>
+
+          <!-- Grade de severidades -->
+          <div class="sev-columns">
+            <div class="sev-col">
+              <span class="sev-pill sev-critical">Gravidade Crítico</span>
+              <div class="sev-data">{{ criticalAlerts }}</div>
+            </div>
+            <div class="sev-col">
+              <span class="sev-pill sev-high">Gravidade Alto</span>
+              <div class="sev-data">{{ highAlerts }}</div>
+            </div>
+            <div class="sev-col">
+              <span class="sev-pill sev-medium">Gravidade Médio</span>
+              <div class="sev-data">{{ mediumAlerts }}</div>
+            </div>
+            <div class="sev-col">
+              <span class="sev-pill sev-low">Gravidade Baixo</span>
+              <div class="sev-data">{{ lowAlerts }}</div>
+            </div>
+          </div>
+
+          <!-- Total -->
+          <div class="total-row">
+            <span class="total-pill">Total</span>
+            <div class="sev-data total-data">{{ totalAlerts }}</div>
+          </div>
+        </div>
+
+      </div><!-- /dashboard-grid -->
+
+      <!-- Warning -->
+      <div *ngIf="errorMessage" class="warning-card">{{ errorMessage }}</div>
+
+      <!-- ── Seções adicionais abaixo ─── -->
+      <div class="bottom-grid">
+
+        <div class="card panel-card reveal">
+          <p class="panel-title">Top regras</p>
+          <div *ngIf="topRules.length === 0" class="empty">Sem dados.</div>
+          <div class="compact-list" *ngIf="topRules.length > 0">
+            <div class="compact-row" *ngFor="let item of topRules; trackBy: trackByLabel">
+              <span>{{ item.label }}</span>
+              <strong>{{ item.count }}</strong>
+            </div>
+          </div>
+        </div>
+
+        <div class="card panel-card reveal">
+          <p class="panel-title">Alertas por agente</p>
+          <div *ngIf="agents.length === 0" class="empty">Sem dados.</div>
+          <div class="compact-list" *ngIf="agents.length > 0">
+            <div class="compact-row" *ngFor="let item of agents; trackBy: trackByLabel">
+              <span>{{ item.label }}</span>
+              <strong>{{ item.count }}</strong>
+            </div>
+          </div>
+        </div>
+
+        <div class="card panel-card reveal">
+          <p class="panel-title">Top IPs de origem</p>
+          <div *ngIf="sourceIps.length === 0" class="empty">Sem dados.</div>
+          <div class="compact-list" *ngIf="sourceIps.length > 0">
+            <div class="compact-row" *ngFor="let item of sourceIps; trackBy: trackByLabel">
+              <span>{{ item.label }}</span>
+              <strong>{{ item.count }}</strong>
+            </div>
+          </div>
+        </div>
+
+      </div><!-- /bottom-grid -->
+
+      <!-- Tabela de últimos alertas -->
+      <div class="card table-card reveal">
+        <div class="table-card-head">
+          <p class="panel-title">Últimos alertas</p>
+          <a routerLink="/alertas" class="link-all">Ver todos →</a>
+        </div>
+        <div *ngIf="alerts.length === 0" class="empty">Nenhum alerta encontrado.</div>
+        <div class="table-wrapper" *ngIf="alerts.length > 0">
+          <table>
+            <thead>
+              <tr>
+                <th>Horário</th>
+                <th>Nível</th>
+                <th>Descrição</th>
+                <th>Agente</th>
+                <th>IP origem</th>
+                <th>MITRE</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let alert of alerts; trackBy: trackByAlertId">
+                <td class="mono">{{ alert.timestamp | date: 'dd/MM/yy HH:mm' }}</td>
+                <td>
+                  <span class="sev-pill-sm" [ngClass]="getSeverityClass(alert.level)">
+                    {{ alert.level ?? '-' }} · {{ getSeverityText(alert.level) }}
+                  </span>
+                </td>
+                <td>{{ alert.description || '—' }}</td>
+                <td>{{ alert.agentName || '—' }}</td>
+                <td class="mono">{{ alert.srcIp || '—' }}</td>
+                <td class="mono muted">{{ alert.mitreTechnique.join(', ') || '—' }}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
       </div>
 
-      <form class="filters" (ngSubmit)="loadDashboard()">
-        <label>
-          Últimas horas
-          <input type="number" name="lastHours" min="1" max="720" [(ngModel)]="lastHours" />
-        </label>
-        <label>
-          Severidade mínima
-          <input type="number" name="minLevel" min="0" max="16" [(ngModel)]="minLevel" />
-        </label>
-        <label>
-          Quantidade
-          <input type="number" name="size" min="1" max="500" [(ngModel)]="size" />
-        </label>
-        <button type="submit" class="btn primary" [disabled]="loading">
-          {{ loading ? 'Atualizando...' : 'Atualizar' }}
-        </button>
-      </form>
-    </section>
-
-    <section *ngIf="errorMessage" class="warning-card">
-      {{ errorMessage }}
-    </section>
-
-    <section class="kpi-grid">
-      <article class="kpi-card blue">
-        <span>Total no período</span>
-        <strong>{{ totalAlerts }}</strong>
-        <small>{{ periodLabel }}</small>
-      </article>
-      <article class="kpi-card red">
-        <span>Críticos</span>
-        <strong>{{ criticalAlerts }}</strong>
-        <small>Rule level maior ou igual a 12</small>
-      </article>
-      <article class="kpi-card orange">
-        <span>Altos</span>
-        <strong>{{ highAlerts }}</strong>
-        <small>Rule level entre 7 e 11</small>
-      </article>
-      <article class="kpi-card purple">
-        <span>Agentes com alerta</span>
-        <strong>{{ monitoredAgents }}</strong>
-        <small>Hosts retornados no período</small>
-      </article>
-      <article class="kpi-card green">
-        <span>Top IP origem</span>
-        <strong>{{ topSourceIp }}</strong>
-        <small>IP mais frequente nos alertas</small>
-      </article>
-    </section>
-
-    <section class="severity-summary">
-      <article>
-        <span>Baixos</span>
-        <strong>{{ lowAlerts }}</strong>
-      </article>
-      <article>
-        <span>Médios</span>
-        <strong>{{ mediumAlerts }}</strong>
-      </article>
-      <article>
-        <span>Altos</span>
-        <strong>{{ highAlerts }}</strong>
-      </article>
-      <article>
-        <span>Críticos</span>
-        <strong>{{ criticalAlerts }}</strong>
-      </article>
-    </section>
-
-    <section class="panels-grid">
-      <article class="panel">
-        <div class="panel-title">
-          <h2>Alertas por severidade</h2>
-          <span>{{ periodLabel }}</span>
-        </div>
-        <div *ngIf="severityData.length === 0" class="empty">Sem dados de severidade.</div>
-        <div class="bar-list" *ngIf="severityData.length > 0">
-          <div class="bar-row" *ngFor="let item of severityData; trackBy: trackByLabel">
-            <span>Nível {{ item.label }}</span>
-            <div class="bar-track"><div class="bar-fill" [style.width]="getBarWidth(item.count, severityData)"></div></div>
-            <strong>{{ item.count }}</strong>
-          </div>
-        </div>
-      </article>
-
-      <article class="panel">
-        <div class="panel-title">
-          <h2>Top regras</h2>
-          <span>{{ periodLabel }}</span>
-        </div>
-        <div *ngIf="topRules.length === 0" class="empty">Sem regras para exibir.</div>
-        <div class="compact-list" *ngIf="topRules.length > 0">
-          <div class="compact-row" *ngFor="let item of topRules; trackBy: trackByLabel">
-            <span>{{ item.label }}</span>
-            <strong>{{ item.count }}</strong>
-          </div>
-        </div>
-      </article>
-
-      <article class="panel">
-        <div class="panel-title">
-          <h2>Alertas por agente</h2>
-          <span>{{ periodLabel }}</span>
-        </div>
-        <div *ngIf="agents.length === 0" class="empty">Sem agentes para exibir.</div>
-        <div class="compact-list" *ngIf="agents.length > 0">
-          <div class="compact-row" *ngFor="let item of agents; trackBy: trackByLabel">
-            <span>{{ item.label }}</span>
-            <strong>{{ item.count }}</strong>
-          </div>
-        </div>
-      </article>
-
-      <article class="panel">
-        <div class="panel-title">
-          <h2>Top IPs de origem</h2>
-          <span>{{ periodLabel }}</span>
-        </div>
-        <div *ngIf="sourceIps.length === 0" class="empty">Sem IPs de origem para exibir.</div>
-        <div class="compact-list" *ngIf="sourceIps.length > 0">
-          <div class="compact-row" *ngFor="let item of sourceIps; trackBy: trackByLabel">
-            <span>{{ item.label }}</span>
-            <strong>{{ item.count }}</strong>
-          </div>
-        </div>
-      </article>
-    </section>
-
-    <section class="panel table-panel">
-      <div class="panel-title">
-        <h2>Últimos alertas</h2>
-        <a routerLink="/alertas">Ver tabela completa</a>
-      </div>
-
-      <div *ngIf="alerts.length === 0" class="empty">Nenhum alerta encontrado para os filtros atuais.</div>
-
-      <div class="table-wrapper" *ngIf="alerts.length > 0">
-        <table>
-          <thead>
-            <tr>
-              <th>Horário</th>
-              <th>Nível</th>
-              <th>Descrição</th>
-              <th>Agente</th>
-              <th>IP origem</th>
-              <th>MITRE</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr *ngFor="let alert of alerts; trackBy: trackByAlertId">
-              <td>{{ alert.timestamp | date: 'dd/MM/yyyy HH:mm:ss' }}</td>
-              <td>
-                <span class="severity-pill" [ngClass]="getSeverityClass(alert.level)">
-                  {{ alert.level ?? '-' }} · {{ getSeverityText(alert.level) }}
-                </span>
-              </td>
-              <td>{{ alert.description || 'Sem descrição' }}</td>
-              <td>{{ alert.agentName || 'Não informado' }}</td>
-              <td>{{ alert.srcIp || 'Não informado' }}</td>
-              <td>{{ alert.mitreTechnique.join(', ') || '—' }}</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-    </section>
-  </main>
+    </main>
+  </div><!-- /main-area -->
 </div>

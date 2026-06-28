@@ -1,38 +1,107 @@
-<div class="login-container">
-  <div class="login-card">
+<div class="login-shell">
+
+  <!-- Canvas 3D de fundo -->
+  <canvas class="bg-canvas" #bgCanvas></canvas>
+
+  <!-- Partículas flutuantes -->
+  <div class="particles">
+    <span *ngFor="let p of particles" class="particle"
+      [style.left]="p.x + '%'"
+      [style.top]="p.y + '%'"
+      [style.width]="p.size + 'px'"
+      [style.height]="p.size + 'px'"
+      [style.animationDelay]="p.delay + 's'"
+      [style.animationDuration]="p.duration + 's'">
+    </span>
+  </div>
+
+  <!-- Card de login -->
+  <div class="login-card" [class.shake]="shaking">
+
+    <div class="card-glow"></div>
+
     <div class="brand-section">
+      <div class="brand-icon">
+        <svg width="40" height="40" viewBox="0 0 40 40" fill="none">
+          <circle cx="20" cy="20" r="18" stroke="#00d4ff" stroke-width="1.5" opacity="0.4"/>
+          <circle cx="20" cy="20" r="12" stroke="#00d4ff" stroke-width="1.5" opacity="0.7"/>
+          <circle cx="20" cy="20" r="5"  fill="#00d4ff"/>
+          <line x1="20" y1="2"  x2="20" y2="8"  stroke="#00d4ff" stroke-width="1.5" opacity="0.5"/>
+          <line x1="20" y1="32" x2="20" y2="38" stroke="#00d4ff" stroke-width="1.5" opacity="0.5"/>
+          <line x1="2"  y1="20" x2="8"  y2="20" stroke="#00d4ff" stroke-width="1.5" opacity="0.5"/>
+          <line x1="32" y1="20" x2="38" y2="20" stroke="#00d4ff" stroke-width="1.5" opacity="0.5"/>
+        </svg>
+      </div>
       <h1>SIEM Lightweight</h1>
       <p>Monitoramento de Tentativas de Invasão</p>
     </div>
 
     <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="login-form">
-      <div class="input-group">
-        <label for="username">Usuário</label>
+
+      <div class="input-group" [class.focused]="userFocused" [class.filled]="loginForm.get('username')?.value">
+        <label for="username">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/>
+            <circle cx="12" cy="7" r="4"/>
+          </svg>
+          Usuário
+        </label>
         <input
           id="username"
           type="text"
           formControlName="username"
           placeholder="Digite sua credencial"
+          (focus)="userFocused = true"
+          (blur)="userFocused = false"
+          autocomplete="username"
         />
+        <div class="input-line"></div>
       </div>
 
-      <div class="input-group">
-        <label for="password">Senha</label>
+      <div class="input-group" [class.focused]="passFocused" [class.filled]="loginForm.get('password')?.value">
+        <label for="password">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+            <path d="M7 11V7a5 5 0 0110 0v4"/>
+          </svg>
+          Senha
+        </label>
         <input
           id="password"
           type="password"
           formControlName="password"
           placeholder="Digite sua senha"
+          (focus)="passFocused = true"
+          (blur)="passFocused = false"
+          autocomplete="current-password"
         />
+        <div class="input-line"></div>
       </div>
 
       <div *ngIf="errorMessage" class="error-alert">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="10"/>
+          <line x1="12" y1="8" x2="12" y2="12"/>
+          <line x1="12" y1="16" x2="12.01" y2="16"/>
+        </svg>
         {{ errorMessage }}
       </div>
 
-      <button type="submit" [disabled]="loginForm.invalid" class="btn-login">
-        Acessar Sistema
+      <button type="submit" [disabled]="loginForm.invalid || loading" class="btn-login" [class.loading]="loading">
+        <span *ngIf="!loading">Acessar Sistema</span>
+        <span *ngIf="loading" class="spinner-wrap">
+          <svg class="spinner" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/>
+          </svg>
+          Verificando...
+        </span>
       </button>
+
     </form>
+
+    <div class="login-footer">
+      <span>Sistema protegido · Acesso monitorado</span>
+    </div>
+
   </div>
 </div>

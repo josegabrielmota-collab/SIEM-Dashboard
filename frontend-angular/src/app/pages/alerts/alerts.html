@@ -1,163 +1,247 @@
 <div class="alerts-shell">
-  <header class="topbar">
-    <div class="brand">
-      <span class="brand-mark">◉</span>
-      <div>
-        <strong>SIEM Lightweight</strong>
-        <small>Central de alertas Wazuh</small>
-      </div>
+
+  <!-- ── Sidebar ─────────────────────────── -->
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <span class="logo-icon">◉</span>
+      <span class="logo-text">Nome da Empresa</span>
     </div>
-
-    <nav class="nav-links">
-      <a routerLink="/dashboard">Visão geral</a>
-      <a routerLink="/alertas" class="active">Alertas</a>
-      <a routerLink="/sobre">Sobre</a>
+    <nav class="sidebar-nav">
+      <a routerLink="/dashboard" class="nav-item">Dashboard</a>
+      <a routerLink="/alertas"   class="nav-item active">Alertas</a>
+      <a routerLink="/relatorio"     class="nav-item">Relatório</a>
     </nav>
+  </aside>
 
-    <button type="button" class="btn ghost" (click)="logout()">Sair</button>
-  </header>
+  <!-- ── Main ───────────────────────────── -->
+  <div class="main-area">
 
-  <main class="content">
-    <section class="page-head">
-      <div>
-        <p class="eyebrow">Investigação</p>
-        <h1>Tabela de alertas</h1>
-        <p>Use os filtros para procurar ataques por severidade, host, IP, regra, MITRE ou texto do log.</p>
-      </div>
-
-      <form class="filters" (ngSubmit)="loadAlerts()">
-        <label>
-          Últimas horas
-          <input type="number" name="lastHours" min="1" max="720" [(ngModel)]="lastHours" />
-        </label>
-        <label>
-          Severidade mínima
-          <input type="number" name="minLevel" min="0" max="16" [(ngModel)]="minLevel" />
-        </label>
-        <label>
-          Quantidade
-          <input type="number" name="size" min="1" max="500" [(ngModel)]="size" />
-        </label>
-        <label class="search-field">
-          Buscar no resultado
-          <input type="search" name="searchTerm" placeholder="Ex.: ssh, root, IP, agente..." [(ngModel)]="searchTerm" />
-        </label>
-        <div class="quick-filters">
-          <button type="button" class="btn chip" [class.active]="minLevel === 0" (click)="setMinLevel(0)">Todos</button>
-          <button type="button" class="btn chip" [class.active]="minLevel === 4" (click)="setMinLevel(4)">Médio+</button>
-          <button type="button" class="btn chip" [class.active]="minLevel === 7" (click)="setMinLevel(7)">Alto+</button>
-          <button type="button" class="btn chip" [class.active]="minLevel === 12" (click)="setMinLevel(12)">Crítico</button>
+    <!-- Topbar -->
+    <header class="topbar">
+      <div class="topbar-right">
+        <a routerLink="/sobre" class="btn-inicio">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/>
+            <polyline points="9 22 9 12 15 12 15 22"/>
+          </svg>
+          Início
+        </a>
+        <div class="avatar-menu" (click)="toggleUserMenu()" [class.open]="userMenuOpen">
+          <span class="user-icon">
+            <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
+              <circle cx="16" cy="16" r="15" stroke="currentColor" stroke-width="1.5"/>
+              <circle cx="16" cy="13" r="5"  stroke="currentColor" stroke-width="1.5"/>
+              <path d="M6 27c0-4 4.5-7 10-7s10 3 10 7" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+            </svg>
+          </span>
+          <div class="user-dropdown" *ngIf="userMenuOpen">
+            <div class="dropdown-info">
+              <strong>admin</strong>
+              <span>Administrador</span>
+            </div>
+            <div class="dropdown-divider"></div>
+            <button class="dropdown-item logout" (click)="logout()">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/>
+                <polyline points="16 17 21 12 16 7"/>
+                <line x1="21" y1="12" x2="9" y2="12"/>
+              </svg>
+              Finalizar sessão
+            </button>
+          </div>
         </div>
-        <button type="submit" class="btn primary" [disabled]="loading">
-          {{ loading ? 'Carregando...' : 'Buscar alertas' }}
-        </button>
-      </form>
-    </section>
+      </div>
+    </header>
 
-    <section *ngIf="errorMessage" class="warning-card">
-      {{ errorMessage }}
-    </section>
+    <main class="page-center">
 
-    <section class="alert-kpis">
-      <article>
-        <span>Retornados pelo Wazuh</span>
-        <strong>{{ total }}</strong>
-      </article>
-      <article>
-        <span>Visíveis na tabela</span>
-        <strong>{{ filteredAlerts.length }}</strong>
-      </article>
-      <article>
-        <span>Críticos visíveis</span>
-        <strong>{{ criticalVisible }}</strong>
-      </article>
-      <article>
-        <span>Altos visíveis</span>
-        <strong>{{ highVisible }}</strong>
-      </article>
-      <article>
-        <span>Agentes visíveis</span>
-        <strong>{{ agentsVisible }}</strong>
-      </article>
-      <article>
-        <span>Top IP origem</span>
-        <strong>{{ topSourceIpVisible }}</strong>
-      </article>
-    </section>
+      <!-- ── Gráfico de barras ─────────────── -->
+      <div class="card chart-card reveal">
+        <div class="chart-topbar">
+          <div class="chart-controls-left">
+            <span class="chart-label">Contagem de Alertas</span>
+          </div>
+          <div class="chart-controls-right">
+            <div class="time-filter-wrap">
+              <span class="time-filter-label">Filtro de tempo</span>
+              <div class="time-chips">
+                <button type="button" class="chip" [class.active]="lastHours===6"   (click)="setHours(6)">6h</button>
+                <button type="button" class="chip" [class.active]="lastHours===24"  (click)="setHours(24)">24h</button>
+                <button type="button" class="chip" [class.active]="lastHours===72"  (click)="setHours(72)">3d</button>
+                <button type="button" class="chip" [class.active]="lastHours===168" (click)="setHours(168)">7d</button>
+              </div>
+            </div>
+            <button type="button" class="btn-update" (click)="loadAlerts()" [disabled]="loading">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                <polyline points="23 4 23 10 17 10"/>
+                <path d="M20.49 15a9 9 0 11-2.12-9.36L23 10"/>
+              </svg>
+              Atualizar
+            </button>
+          </div>
+        </div>
 
-    <section class="panel">
-      <div *ngIf="filteredAlerts.length === 0" class="empty">
-        Nenhum alerta encontrado para os filtros atuais.
+        <!-- Área do gráfico SVG -->
+        <div class="bar-chart-area">
+          <div class="y-axis-label">Contagem de Alertas</div>
+
+          <div class="bars-container" *ngIf="chartBars.length > 0">
+            <div class="bar-column" *ngFor="let bar of chartBars; trackBy: trackByHour">
+              <div class="bar-tooltip">{{ bar.count }}</div>
+              <div class="bar-fill-wrap">
+                <div class="bar-fill-inner"
+                     [style.height]="getChartBarHeight(bar.count)"
+                     [ngClass]="bar.severity">
+                </div>
+              </div>
+              <span class="bar-hour">{{ bar.hour }}</span>
+            </div>
+          </div>
+
+          <div class="chart-empty" *ngIf="chartBars.length === 0 && !loading">
+            Sem dados para o período selecionado.
+          </div>
+          <div class="chart-loading" *ngIf="loading">Carregando...</div>
+
+          <div class="x-axis-label">Tempo</div>
+
+          <!-- Tabelas (badge) -->
+          <div class="tables-badge">Tabelas</div>
+        </div>
       </div>
 
-      <div class="table-wrapper" *ngIf="filteredAlerts.length > 0">
-        <table>
-          <thead>
-            <tr>
-              <th>Data/hora</th>
-              <th>Severidade</th>
-              <th>Descrição</th>
-              <th>Agente</th>
-              <th>Origem</th>
-              <th>Destino</th>
-              <th>Local</th>
-              <th></th>
-            </tr>
-          </thead>
-          <tbody>
-            <ng-container *ngFor="let alert of filteredAlerts; trackBy: trackByAlertId">
+      <!-- ── Warning ──────────────────────── -->
+      <div *ngIf="errorMessage" class="warning-card">{{ errorMessage }}</div>
+
+      <!-- ── Painéis do meio ───────────────── -->
+      <div class="mid-grid reveal">
+
+        <!-- Coluna esquerda -->
+        <div class="mid-left">
+
+          <!-- Alerta por agente -->
+          <div class="card mid-card">
+            <div class="mid-card-head">Alerta por agente</div>
+            <div class="mid-card-body">
+              <div *ngIf="agents.length === 0" class="empty">Sem dados.</div>
+              <div class="agent-list" *ngIf="agents.length > 0">
+                <div class="agent-row" *ngFor="let item of agents; trackBy: trackByLabel">
+                  <span>{{ item.label }}: <strong>{{ item.count }}</strong></span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Alerta por gravidade -->
+          <div class="card mid-card">
+            <div class="mid-card-head">Alerta por gravidade</div>
+            <div class="mid-card-body sev-body">
+              <div class="sev-row" *ngFor="let item of severityData; trackBy: trackByLabel">
+                <span class="sev-dot" [ngClass]="getSeverityClass(+item.label)"></span>
+                <span class="sev-name">Nível {{ item.label }}</span>
+                <strong class="sev-count">{{ item.count }}</strong>
+              </div>
+              <div *ngIf="severityData.length === 0" class="empty">Sem dados.</div>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Coluna direita: Alerta por Descrição (tabela top regras) -->
+        <div class="card mid-card mid-right">
+          <div class="mid-card-head">Alerta por Descrição</div>
+          <div class="mid-card-body desc-body">
+            <div *ngIf="topRules.length === 0" class="empty">Sem dados.</div>
+            <div class="desc-list" *ngIf="topRules.length > 0">
+              <div class="desc-row" *ngFor="let item of topRules; trackBy: trackByLabel">
+                <span class="desc-label">{{ item.label }}</span>
+                <strong class="desc-count">{{ item.count }}</strong>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div><!-- /mid-grid -->
+
+      <!-- ── Tabela últimos alertas ─────────── -->
+      <div class="card table-card reveal">
+        <div class="table-card-head">
+          <span class="table-badge">Últimos alertas</span>
+          <div class="table-search">
+            <input type="search" placeholder="Buscar..." [(ngModel)]="searchTerm" />
+          </div>
+        </div>
+
+        <div *ngIf="filteredAlerts.length === 0" class="empty" style="padding:24px">
+          Nenhum alerta encontrado.
+        </div>
+
+        <div class="table-wrapper" *ngIf="filteredAlerts.length > 0">
+          <table>
+            <thead>
               <tr>
-                <td>{{ alert.timestamp | date: 'dd/MM/yyyy HH:mm:ss' }}</td>
-                <td>
-                  <span class="severity-pill" [ngClass]="getSeverityClass(alert.level)">
-                    {{ alert.level ?? '-' }} · {{ getSeverityText(alert.level) }}
-                  </span>
-                </td>
-                <td class="description-cell">{{ alert.description || 'Sem descrição' }}</td>
-                <td>
-                  <strong>{{ alert.agentName || 'Não informado' }}</strong>
-                  <small>{{ alert.agentIp || 'IP não informado' }}</small>
-                </td>
-                <td>{{ alert.srcIp || 'Não informado' }}</td>
-                <td>{{ alert.dstIp || 'Não informado' }}</td>
-                <td>{{ alert.location || '—' }}</td>
-                <td>
-                  <button type="button" class="btn details" (click)="toggleDetails(alert)">
-                    {{ isExpanded(alert) ? 'Fechar' : 'Detalhes' }}
-                  </button>
-                </td>
+                <th>Horário</th>
+                <th>Nível</th>
+                <th>Descrição</th>
+                <th>Agentes</th>
+                <th>IP de origem</th>
               </tr>
+            </thead>
+            <tbody>
+              <ng-container *ngFor="let alert of filteredAlerts; trackBy: trackByAlertId">
+                <tr (click)="toggleDetails(alert)" class="alert-row">
+                  <td class="mono">{{ alert.timestamp | date: 'dd/MM/yy HH:mm' }}</td>
+                  <td>
+                    <span class="sev-pill" [ngClass]="getSeverityClass(alert.level)">
+                      {{ alert.level ?? '-' }} · {{ getSeverityText(alert.level) }}
+                    </span>
+                  </td>
+                  <td class="desc-cell">{{ alert.description || '—' }}</td>
+                  <td>{{ alert.agentName || '—' }}</td>
+                  <td class="mono">{{ alert.srcIp || '—' }}</td>
+                </tr>
 
-              <tr class="details-row" *ngIf="isExpanded(alert)">
-                <td colspan="8">
-                  <div class="details-grid">
-                    <div>
-                      <span>Grupos</span>
-                      <p>{{ alert.groups.join(', ') || 'Não informado' }}</p>
+                <!-- Linha de detalhes expansível -->
+                <tr class="details-row" *ngIf="isExpanded(alert)">
+                  <td colspan="5">
+                    <div class="details-grid">
+                      <div class="detail-item">
+                        <span>Agente IP</span>
+                        <p>{{ alert.agentIp || '—' }}</p>
+                      </div>
+                      <div class="detail-item">
+                        <span>IP Destino</span>
+                        <p>{{ alert.dstIp || '—' }}</p>
+                      </div>
+                      <div class="detail-item">
+                        <span>Grupos</span>
+                        <p>{{ alert.groups?.join(', ') || '—' }}</p>
+                      </div>
+                      <div class="detail-item">
+                        <span>Tática MITRE</span>
+                        <p>{{ alert.mitreTactic?.join(', ') || '—' }}</p>
+                      </div>
+                      <div class="detail-item">
+                        <span>Técnica MITRE</span>
+                        <p>{{ alert.mitreTechnique?.join(', ') || '—' }}</p>
+                      </div>
+                      <div class="detail-item">
+                        <span>Manager</span>
+                        <p>{{ alert.managerName || '—' }}</p>
+                      </div>
+                      <div class="detail-item full-log">
+                        <span>Log completo</span>
+                        <pre>{{ alert.fullLog || 'Sem log.' }}</pre>
+                      </div>
                     </div>
-                    <div>
-                      <span>Tática MITRE</span>
-                      <p>{{ alert.mitreTactic.join(', ') || 'Não informado' }}</p>
-                    </div>
-                    <div>
-                      <span>Técnica MITRE</span>
-                      <p>{{ alert.mitreTechnique.join(', ') || 'Não informado' }}</p>
-                    </div>
-                    <div>
-                      <span>Manager</span>
-                      <p>{{ alert.managerName || 'Não informado' }}</p>
-                    </div>
-                    <div class="full-log">
-                      <span>Log completo</span>
-                      <pre>{{ alert.fullLog || 'Sem full_log retornado pelo Wazuh.' }}</pre>
-                    </div>
-                  </div>
-                </td>
-              </tr>
-            </ng-container>
-          </tbody>
-        </table>
-      </div>
-    </section>
-  </main>
+                  </td>
+                </tr>
+              </ng-container>
+            </tbody>
+          </table>
+        </div>
+      </div><!-- /table-card -->
+
+    </main>
+  </div><!-- /main-area -->
 </div>

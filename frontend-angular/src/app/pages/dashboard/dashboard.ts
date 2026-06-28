@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit } from '@angular/core';
+import { AfterViewInit, ChangeDetectorRef, Component, OnDestroy, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { catchError, forkJoin, of } from 'rxjs';
@@ -13,8 +13,9 @@ import { WazuhApiService } from '../../services/wazuh-api';
   templateUrl: './dashboard.html',
   styleUrls: ['./dashboard.scss'],
 })
-export class DashboardComponent implements OnInit {
+export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
   loading = false;
+  userMenuOpen = false;
   backendOnline = false;
   wazuhOnline = false;
   errorMessage = '';
@@ -30,141 +31,160 @@ export class DashboardComponent implements OnInit {
   agents: CountItem[] = [];
   sourceIps: CountItem[] = [];
 
+  private observer: IntersectionObserver | null = null;
+
+  // Circumference of the donut ring: 2 * PI * r = 2 * 3.14159 * 72 ≈ 452.4
+  private readonly CIRC = 452.4;
+
   constructor(
     private wazuhApi: WazuhApiService,
     private router: Router,
+    private cdr: ChangeDetectorRef,
   ) {}
 
   ngOnInit(): void {
     this.loadDashboard();
   }
 
-  get apiUrl(): string {
-    return this.wazuhApi.apiUrl;
+  ngAfterViewInit(): void {
+    this.initScrollReveal();
   }
 
-  get periodLabel(): string {
-    return `Últimas ${this.lastHours}h`;
+  ngOnDestroy(): void {
+    this.observer?.disconnect();
   }
+
+  private initScrollReveal(): void {
+    this.observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('visible');
+            this.observer?.unobserve(entry.target);
+          }
+        });
+      },
+      { threshold: 0.08 },
+    );
+    document.querySelectorAll('.reveal').forEach((el) => this.observer!.observe(el));
+  }
+
+  private refreshReveal(): void {
+    setTimeout(() => {
+      document.querySelectorAll('.reveal:not(.visible)').forEach((el) =>
+        this.observer?.observe(el),
+      );
+    }, 60);
+  }
+
+  get apiUrl(): string { return this.wazuhApi.apiUrl; }
+  get periodLabel(): string { return `Últimas ${this.lastHours}h`; }
 
   loadDashboard(): void {
     this.loading = true;
     this.errorMessage = '';
 
     forkJoin({
-      health: this.wazuhApi.getHealth().pipe(catchError(() => of(null))),
-      status: this.wazuhApi.getWazuhStatus().pipe(catchError(() => of(null))),
-      alerts: this.wazuhApi.getAlerts(this.lastHours, this.minLevel, this.size).pipe(
-        catchError(() => of({ ok: false, total: 0, alerts: [] })),
-      ),
-      severity: this.wazuhApi.getAlertsBySeverity(this.lastHours).pipe(
-        catchError(() => of({ ok: false, data: [] })),
-      ),
-      topRules: this.wazuhApi.getTopRules(this.lastHours).pipe(
-        catchError(() => of({ ok: false, data: [] })),
-      ),
-      agents: this.wazuhApi.getAlertsByAgent(this.lastHours).pipe(
-        catchError(() => of({ ok: false, data: [] })),
-      ),
+      health:    this.wazuhApi.getHealth().pipe(catchError(() => of(null))),
+      status:    this.wazuhApi.getWazuhStatus().pipe(catchError(() => of(null))),
+      alerts:    this.wazuhApi.getAlerts(this.lastHours, this.minLevel, this.size).pipe(
+                   catchError(() => of({ ok: false, total: 0, alerts: [] })),
+                 ),
+      severity:  this.wazuhApi.getAlertsBySeverity(this.lastHours).pipe(
+                   catchError(() => of({ ok: false, data: [] })),
+                 ),
+      topRules:  this.wazuhApi.getTopRules(this.lastHours).pipe(
+                   catchError(() => of({ ok: false, data: [] })),
+                 ),
+      agents:    this.wazuhApi.getAlertsByAgent(this.lastHours).pipe(
+                   catchError(() => of({ ok: false, data: [] })),
+                 ),
       sourceIps: this.wazuhApi.getTopSourceIps(this.lastHours).pipe(
-        catchError(() => of({ ok: false, data: [] })),
-      ),
+                   catchError(() => of({ ok: false, data: [] })),
+                 ),
     }).subscribe({
       next: (result) => {
         this.backendOnline = Boolean(result.health?.ok);
-        this.wazuhOnline = Boolean(result.status?.ok);
-        this.alerts = result.alerts.alerts;
-        this.severityData = this.sortSeverity(result.severity.data);
-        this.topRules = result.topRules.data;
-        this.agents = result.agents.data;
-        this.sourceIps = result.sourceIps.data;
-        this.totalAlerts = this.totalFromSeverity || result.alerts.total;
+        this.wazuhOnline   = Boolean(result.status?.ok);
+        this.alerts        = result.alerts.alerts;
+        this.severityData  = this.sortSeverity(result.severity.data);
+        this.topRules      = result.topRules.data;
+        this.agents        = result.agents.data;
+        this.sourceIps     = result.sourceIps.data;
+        this.totalAlerts   = this.totalFromSeverity || result.alerts.total;
 
         if (!this.backendOnline) {
-          this.errorMessage = `Não foi possível conectar ao backend em ${this.apiUrl}. Verifique se o Spring Boot está rodando.`;
+          this.errorMessage = `Não foi possível conectar ao backend em ${this.apiUrl}.`;
         } else if (!this.wazuhOnline) {
-          this.errorMessage = 'O backend respondeu, mas não conseguiu conectar ao Wazuh Indexer. Confira URL, usuário, senha e porta 9200.';
+          this.errorMessage = 'Backend online, mas sem conexão com o Wazuh Indexer.';
         }
       },
       error: () => {
         this.errorMessage = 'Erro inesperado ao carregar o dashboard.';
+        this.loading = false;
+        this.cdr.detectChanges();
       },
       complete: () => {
         this.loading = false;
+        this.cdr.detectChanges();
+        this.refreshReveal();
       },
     });
   }
 
-  logout(): void {
-    this.router.navigate(['/login']);
+  toggleUserMenu(): void { this.userMenuOpen = !this.userMenuOpen; }
+
+  logout(): void { this.router.navigate(['/login']); }
+
+  // ── Donut chart helpers ─────────────────────────────
+  /** Retorna stroke-dasharray para um valor no total */
+  getDonutDash(value: number): string {
+    if (!this.totalAlerts) return `0 ${this.CIRC}`;
+    const filled = (value / this.totalAlerts) * this.CIRC;
+    return `${filled} ${this.CIRC - filled}`;
   }
 
+  /**
+   * Retorna stroke-dashoffset para posicionar a fatia.
+   * offsetCount = soma dos valores anteriores a esta fatia.
+   */
+  getDonutOffset(offsetCount: number): string {
+    if (!this.totalAlerts) return `${this.CIRC}`;
+    const offset = this.CIRC - (offsetCount / this.totalAlerts) * this.CIRC;
+    return `${offset}`;
+  }
+
+  // ── Severity getters ────────────────────────────────
   get totalFromSeverity(): number {
     return this.severityData.reduce((sum, item) => sum + item.count, 0);
   }
 
-  get criticalAlerts(): number {
-    return this.countSeverityRange(12, 16);
-  }
+  get criticalAlerts(): number { return this.countSeverityRange(12, 16); }
+  get highAlerts(): number     { return this.countSeverityRange(7, 11); }
+  get mediumAlerts(): number   { return this.countSeverityRange(4, 6); }
+  get lowAlerts(): number      { return this.countSeverityRange(0, 3); }
 
-  get highAlerts(): number {
-    return this.countSeverityRange(7, 11);
-  }
-
-  get mediumAlerts(): number {
-    return this.countSeverityRange(4, 6);
-  }
-
-  get lowAlerts(): number {
-    return this.countSeverityRange(0, 3);
-  }
-
-  get monitoredAgents(): number {
-    return this.agents.length;
-  }
-
-  get topSourceIp(): string {
-    return this.sourceIps[0]?.label || 'Sem dados';
-  }
+  get monitoredAgents(): number { return this.agents.length; }
+  get topSourceIp(): string     { return this.sourceIps[0]?.label || '—'; }
 
   getSeverityClass(level: number | null): string {
-    const value = level ?? 0;
-
-    if (value >= 12) {
-      return 'critical';
-    }
-
-    if (value >= 7) {
-      return 'high';
-    }
-
-    if (value >= 4) {
-      return 'medium';
-    }
-
+    const v = level ?? 0;
+    if (v >= 12) return 'critical';
+    if (v >= 7)  return 'high';
+    if (v >= 4)  return 'medium';
     return 'low';
   }
 
   getSeverityText(level: number | null): string {
-    const value = level ?? 0;
-
-    if (value >= 12) {
-      return 'Crítico';
-    }
-
-    if (value >= 7) {
-      return 'Alto';
-    }
-
-    if (value >= 4) {
-      return 'Médio';
-    }
-
+    const v = level ?? 0;
+    if (v >= 12) return 'Crítico';
+    if (v >= 7)  return 'Alto';
+    if (v >= 4)  return 'Médio';
     return 'Baixo';
   }
 
   getBarWidth(count: number, data: CountItem[]): string {
-    const max = Math.max(...data.map((item) => item.count), 1);
+    const max = Math.max(...data.map((i) => i.count), 1);
     return `${Math.max((count / max) * 100, 4)}%`;
   }
 

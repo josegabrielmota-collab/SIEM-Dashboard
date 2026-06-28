@@ -1,13 +1,20 @@
+# Angular
 frontend-angular/node_modules/
 frontend-angular/dist/
 frontend-angular/.angular/
 
+# TS cache
+*.tsbuildinfo
+
+# Logs
 *.log
 npm-debug.log*
 
+# Sistema
 .DS_Store
 Thumbs.db
 .vscode/
 
+# Java
 backend-java/target/
 *.class

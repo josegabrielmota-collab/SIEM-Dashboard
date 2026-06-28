@@ -1,0 +1,13 @@
+frontend-angular/node_modules/
+frontend-angular/dist/
+frontend-angular/.angular/
+
+*.log
+npm-debug.log*
+
+.DS_Store
+Thumbs.db
+.vscode/
+
+backend-java/target/
+*.class

@@ -1,6 +1,6 @@
 # SIEM Dashboard - Dashboard de Monitoramento de Tentativas de Invasão
 
-Este projeto consiste em um dashboard lightweight para visualização de alertas de segurança gerados pelo Wazuh. Utilizamos o Wazuh como motor de coleta, correlação e indexação dos eventos e usamos esta aplicação, composta por backend em Java/Spring Boot e frontend em Angular, para realizar a consulta, tratamento e apresentação dos dados em uma interface mais simples e objetiva.
+Este projeto consiste em um dashboard para visualização de alertas de segurança gerados pelo Wazuh. Utilizamos o Wazuh como motor de coleta, correlação e indexação dos eventos e usamos esta aplicação composta por backend em Java/Spring Boot e frontend em Angular, para realizar a consulta, tratamento e apresentação dos dados em uma interface mais simples e objetiva.
 
 ## Tecnologias utilizadas
 
@@ -13,54 +13,18 @@ Este projeto consiste em um dashboard lightweight para visualização de alertas
 * npm
 * TypeScript
 * SCSS
-* Maven, opcionalmente, apenas para recompilar o backend
-
-## Estrutura do projeto
-
-```text
-SIEM-Dashboard/
-├── backend-java/
-│   ├── src/
-│   ├── pom.xml
-│   └── target/
-│
-├── frontend-angular/
-│   ├── src/
-│   ├── package.json
-│   ├── package-lock.json
-│   └── angular.json
-│
-├── .gitignore
-└── README.md
-```
+* Maven
 
 ## Pré-requisitos
 
 Antes de executar o projeto, é necessário ter um ambiente Wazuh funcionando e instalar as dependências do backend e do frontend.
 
-### Wazuh
-
-O Wazuh Manager e o Wazuh Indexer devem estar instalados em um ambiente Linux. No ambiente de testes do projeto, o Wazuh foi executado em uma máquina Linux Ubuntu.
-
-O ambiente Wazuh deve conter:
-
-* Wazuh Manager
-* Wazuh Indexer
-* Wazuh Dashboard
-* Agentes Wazuh cadastrados e ativos
-
-O backend consulta os alertas diretamente no Wazuh Indexer, normalmente disponível na porta:
-
-```text
-https://localhost:9200
-```
-
 ### Backend
 
-Para executar o backend pelo arquivo `.jar`, é necessário apenas:
+Para executar o backend, é necessário apenas:
 
 * Java 17 ou superior
-* Maven
+* Maven (Apenas para gerar o arquivo `.jar`)
 
 Para verificar se o Java está instalado:
 
@@ -162,7 +126,7 @@ Se você já estiver dentro da pasta `backend-java`, execute:
 java -jar target/wazuh-dashboard-backend-0.0.1-SNAPSHOT.jar
 ```
 
-Se o `.jar` estiver em outra pasta, informe o caminho correto:
+Se o `.jar` estiver em outra pasta:
 
 ```bash
 java -jar /caminho/para/wazuh-dashboard-backend-0.0.1-SNAPSHOT.jar
@@ -251,41 +215,6 @@ Usuário: admin
 Senha: admin123
 ```
 
-## Fluxo de funcionamento
-
-```text
-Endpoint monitorado
-↓
-Agente Wazuh
-↓
-Wazuh Manager
-↓
-Wazuh Indexer
-↓
-Backend Java / Spring Boot
-↓
-API REST customizada
-↓
-Frontend Angular
-↓
-Dashboard SIEM Lightweight
-```
-
-## Build do frontend
-
-Para gerar a versão de produção do frontend:
-
-```bash
-cd frontend-angular
-npm run build
-```
-
-Os arquivos gerados ficam na pasta:
-
-```text
-frontend-angular/dist/
-```
-
 ## Build do backend com Maven
 
 Execute esse comando para gerar o jar:
@@ -311,6 +240,8 @@ java -jar target/wazuh-dashboard-backend-0.0.1-SNAPSHOT.jar
 
 Terminal 1 - Backend:
 
+Execução pelo `.jar`:
+
 ```bash
 export WAZUH_INDEXER_URL="https://localhost:9200"
 export WAZUH_USERNAME="admin"
@@ -322,6 +253,19 @@ export CORS_ALLOWED_ORIGINS="http://localhost:4200"
 mvn clean package
 
 java -jar backend-java/target/wazuh-dashboard-backend-0.0.1-SNAPSHOT.jar
+```
+
+Execução sem o `.jar`:
+
+```bash
+cd backend-java
+export WAZUH_INDEXER_URL="https://localhost:9200"
+export WAZUH_USERNAME="admin"
+export WAZUH_PASSWORD="SUA_SENHA_DO_WAZUH"
+export WAZUH_ALERT_INDEX="wazuh-alerts*"
+export WAZUH_IGNORE_SSL="true"
+export CORS_ALLOWED_ORIGINS="http://localhost:4200"
+mvn spring-boot:run
 ```
 
 Terminal 2 - Frontend:

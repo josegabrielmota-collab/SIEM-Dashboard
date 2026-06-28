@@ -1,5 +1,9 @@
 import { CommonModule } from '@angular/common';
+<<<<<<< HEAD
 import { AfterViewInit, ChangeDetectorRef, Component, OnDestroy, OnInit } from '@angular/core';
+=======
+import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
+>>>>>>> f726687a5fd2223b0c98353c89edac9334f52b07
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { catchError, forkJoin, of } from 'rxjs';
@@ -117,6 +121,7 @@ export class AlertsComponent implements OnInit, AfterViewInit, OnDestroy {
         this.errorMessage = `Erro ao buscar alertas. Verifique o backend em ${this.apiUrl}.`;
         this.loading = false;
         this.cdr.detectChanges();
+<<<<<<< HEAD
       },
       complete: () => {
         this.loading = false;
@@ -143,6 +148,8 @@ export class AlertsComponent implements OnInit, AfterViewInit, OnDestroy {
       buckets.set(key, {
         count:    prev.count + 1,
         maxLevel: Math.max(prev.maxLevel, alert.level ?? 0),
+=======
+>>>>>>> f726687a5fd2223b0c98353c89edac9334f52b07
       });
     });
 

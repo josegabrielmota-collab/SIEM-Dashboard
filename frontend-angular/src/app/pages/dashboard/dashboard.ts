@@ -1,5 +1,9 @@
 import { CommonModule } from '@angular/common';
+<<<<<<< HEAD
 import { AfterViewInit, ChangeDetectorRef, Component, OnDestroy, OnInit } from '@angular/core';
+=======
+import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
+>>>>>>> f726687a5fd2223b0c98353c89edac9334f52b07
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { catchError, forkJoin, of } from 'rxjs';
@@ -127,7 +131,10 @@ export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
       complete: () => {
         this.loading = false;
         this.cdr.detectChanges();
+<<<<<<< HEAD
         this.refreshReveal();
+=======
+>>>>>>> f726687a5fd2223b0c98353c89edac9334f52b07
       },
     });
   }

@@ -57,12 +57,17 @@ public class WazuhService {
                 "rule.level",
                 "rule.description",
                 "rule.groups",
+                "rule.mitre.id",
+                "rule.mitre.tactic",
+                "rule.mitre.technique",
                 "agent.name",
                 "agent.ip",
                 "manager.name",
                 "location",
                 "data.srcip",
                 "data.dstip",
+                "data.win.eventdata.ipAddress",
+                "data.win.eventdata.workstationName",
                 "srcip",
                 "dstip",
                 "source.ip",
@@ -190,6 +195,12 @@ public class WazuhService {
         return "if (doc.containsKey('data.srcip') && doc['data.srcip'].size() != 0) return doc['data.srcip'].value.toString(); " +
                 "if (doc.containsKey('srcip') && doc['srcip'].size() != 0) return doc['srcip'].value.toString(); " +
                 "if (doc.containsKey('source.ip') && doc['source.ip'].size() != 0) return doc['source.ip'].value.toString(); " +
+                "if (doc.containsKey('source.address') && doc['source.address'].size() != 0) return doc['source.address'].value.toString(); " +
+                "if (doc.containsKey('data.win.eventdata.ipAddress') && doc['data.win.eventdata.ipAddress'].size() != 0) { " +
+                "def ip = doc['data.win.eventdata.ipAddress'].value.toString(); " +
+                "if (ip != '-' && ip != '::1' && ip != '127.0.0.1') return ip; " +
+                "} " +
+                "if (doc.containsKey('agent.ip') && doc['agent.ip'].size() != 0) return doc['agent.ip'].value.toString(); " +
                 "return 'Não informado';";
     }
 
@@ -204,12 +215,22 @@ public class WazuhService {
                 text(src, "/agent/ip"),
                 text(src, "/manager/name"),
                 text(src, "/location"),
-                firstText(src, "/data/srcip", "/srcip", "/source/ip", "/source/address"),
+                firstText(src, "/data/srcip", "/srcip", "/source/ip", "/source/address", "/data/win/eventdata/ipAddress", "/agent/ip"),
                 firstText(src, "/data/dstip", "/dstip", "/destination/ip"),
-                stringList(src, "/mitre/tactic"),
-                stringList(src, "/mitre/technique"),
+                firstStringList(src, "/rule/mitre/tactic", "/mitre/tactic"),
+                firstStringList(src, "/rule/mitre/technique", "/mitre/technique"),
                 text(src, "/full_log")
         );
+    }
+
+    private List<String> firstStringList(JsonNode node, String... pointers) {
+        for (String pointer : pointers) {
+            List<String> values = stringList(node, pointer);
+            if (!values.isEmpty()) {
+                return values;
+            }
+        }
+        return List.of();
     }
 
     private JsonNode request(HttpMethod method, String path, JsonNode body) {
@@ -249,10 +270,10 @@ public class WazuhService {
         return value.asText();
     }
 
-    private String firstText(JsonNode node, String... pointers) {
+   private String firstText(JsonNode node, String... pointers) {
         for (String pointer : pointers) {
             String value = text(node, pointer);
-            if (value != null && !value.isBlank()) {
+            if (value != null && !value.isBlank() && !"-".equals(value)) {
                 return value;
             }
         }

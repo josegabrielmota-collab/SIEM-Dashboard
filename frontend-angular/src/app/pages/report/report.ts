@@ -6,7 +6,7 @@ import {
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { catchError, forkJoin, of } from 'rxjs';
-import { CountItem } from '../../models/wazuh.models';
+import { CountItem, WazuhAlert } from '../../models/wazuh.models';
 import { WazuhApiService } from '../../services/wazuh-api';
 
 declare const Chart: any;
@@ -103,12 +103,13 @@ export class ReportComponent implements OnInit, AfterViewInit, OnDestroy {
       agents:   this.wazuhApi.getAlertsByAgent(this.lastHours).pipe(catchError(() => of({ ok: false, data: [] }))),
     }).subscribe({
       next: result => {
-        this.severityData = result.severity.data;
-        this.topRules     = result.rules.data;
-        this.agents       = result.agents.data;
+        const loadedAlerts = result.alerts.alerts;
 
-        // Agrupa alertas por hora para o gráfico de linha
-        this._alertsOverTime = this.groupByHour(result.alerts.alerts);
+        this.severityData = this.buildSeverityData(loadedAlerts);
+        this.topRules     = this.aggregateBy(loadedAlerts, (alert) => alert.description, 10);
+        this.agents       = this.aggregateBy(loadedAlerts, (alert) => alert.agentName, 10);
+
+        this._alertsOverTime = this.groupByHour(loadedAlerts);
       },
       error: () => {
         this.errorMessage = 'Erro ao carregar dados do relatório.';
@@ -125,6 +126,50 @@ export class ReportComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   _alertsOverTime: { label: string; count: number }[] = [];
+
+  private aggregateBy(
+    alerts: WazuhAlert[],
+    selector: (alert: WazuhAlert) => string | null | undefined,
+    limit = 10,
+  ): CountItem[] {
+    const counts = new Map<string, number>();
+
+    alerts.forEach((alert) => {
+      const rawValue = selector(alert);
+      const label = this.normalizeLabel(rawValue);
+
+      counts.set(label, (counts.get(label) || 0) + 1);
+    });
+
+    return [...counts.entries()]
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, limit)
+      .map(([label, count]) => ({ label, count }));
+  }
+
+  private buildSeverityData(alerts: WazuhAlert[]): CountItem[] {
+    const counts = new Map<string, number>();
+
+    alerts.forEach((alert) => {
+      const label = alert.level === null || alert.level === undefined
+        ? 'Não informado'
+        : String(alert.level);
+
+      counts.set(label, (counts.get(label) || 0) + 1);
+    });
+
+    return [...counts.entries()]
+      .sort((a, b) => Number(b[0]) - Number(a[0]))
+      .map(([label, count]) => ({ label, count }));
+  }
+
+  private normalizeLabel(value: string | null | undefined): string {
+    if (!value || !value.trim() || value === '-') {
+      return 'Não informado';
+    }
+
+    return value.trim();
+  }
 
   private groupByHour(alerts: any[]): { label: string; count: number }[] {
     const buckets = new Map<string, number>();

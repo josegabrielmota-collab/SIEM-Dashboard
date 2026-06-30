@@ -106,12 +106,14 @@ export class AlertsComponent implements OnInit, AfterViewInit, OnDestroy {
                 ),
     }).subscribe({
       next: (result) => {
+        const loadedAlerts = result.alerts.alerts;
+
         this.total        = result.alerts.total;
-        this.alerts       = result.alerts.alerts;
-        this.severityData = this.sortSeverity(result.severity.data);
-        this.topRules     = result.topRules.data;
-        this.agents       = result.agents.data;
-        this.chartBars    = this.buildChartBars(result.alerts.alerts);
+        this.alerts       = loadedAlerts;
+        this.severityData = this.buildSeverityData(loadedAlerts);
+        this.topRules     = this.aggregateBy(loadedAlerts, (alert) => alert.description, 10);
+        this.agents       = this.aggregateBy(loadedAlerts, (alert) => alert.agentName, 10);
+        this.chartBars    = this.buildChartBars(loadedAlerts);
       },
       error: () => {
         this.errorMessage = `Erro ao buscar alertas. Verifique o backend em ${this.apiUrl}.`;
@@ -126,10 +128,50 @@ export class AlertsComponent implements OnInit, AfterViewInit, OnDestroy {
     });
   }
 
-  /**
-   * Agrupa os alertas por hora e gera as barras do gráfico.
-   * Cada barra herda a cor da severidade mais alta naquele período.
-   */
+  private aggregateBy(
+    alerts: WazuhAlert[],
+    selector: (alert: WazuhAlert) => string | null | undefined,
+    limit = 10,
+  ): CountItem[] {
+    const counts = new Map<string, number>();
+
+    alerts.forEach((alert) => {
+      const rawValue = selector(alert);
+      const label = this.normalizeLabel(rawValue);
+
+      counts.set(label, (counts.get(label) || 0) + 1);
+    });
+
+    return [...counts.entries()]
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, limit)
+      .map(([label, count]) => ({ label, count }));
+  }
+
+  private buildSeverityData(alerts: WazuhAlert[]): CountItem[] {
+    const counts = new Map<string, number>();
+
+    alerts.forEach((alert) => {
+      const label = alert.level === null || alert.level === undefined
+        ? 'Não informado'
+        : String(alert.level);
+
+      counts.set(label, (counts.get(label) || 0) + 1);
+    });
+
+    return [...counts.entries()]
+      .sort((a, b) => Number(b[0]) - Number(a[0]))
+      .map(([label, count]) => ({ label, count }));
+  }
+
+  private normalizeLabel(value: string | null | undefined): string {
+    if (!value || !value.trim() || value === '-') {
+      return 'Não informado';
+    }
+
+    return value.trim();
+  }
+
   private buildChartBars(alerts: WazuhAlert[]): ChartBar[] {
     if (!alerts.length) return [];
 

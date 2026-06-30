@@ -22,6 +22,9 @@ import org.springframework.web.client.RestTemplate;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.function.Function;
 
 @Service
 public class WazuhService {
@@ -100,21 +103,74 @@ public class WazuhService {
         return new AlertListResponse(true, total, alerts);
     }
 
-    public CountListResponse getAlertsBySeverity(int lastHours) {
-        return termsAggregation("rule.level", "por_severidade", lastHours, 20);
+    public CountListResponse getAlertsBySeverity(int lastHours, int minLevel) {
+        return aggregateAlerts(
+                lastHours,
+                minLevel,
+                alert -> alert.level() == null ? "Não informado" : String.valueOf(alert.level()),
+                20
+        );
     }
 
-    public CountListResponse getTopRules(int lastHours) {
-        return termsAggregation("rule.description.keyword", "top_regras", lastHours, 10);
+    public CountListResponse getTopRules(int lastHours, int minLevel) {
+        return aggregateAlerts(
+                lastHours,
+                minLevel,
+                AlertDto::description,
+                10
+        );
     }
 
-    public CountListResponse getAlertsByAgent(int lastHours) {
-        return termsAggregation("agent.name.keyword", "por_agente", lastHours, 10);
+    public CountListResponse getAlertsByAgent(int lastHours, int minLevel) {
+        return aggregateAlerts(
+                lastHours,
+                minLevel,
+                AlertDto::agentName,
+                10
+        );
     }
 
-    public CountListResponse getTopSourceIps(int lastHours) {
-        return sourceIpAggregation(lastHours);
+    public CountListResponse getTopSourceIps(int lastHours, int minLevel) {
+        return aggregateAlerts(
+                lastHours,
+                minLevel,
+                AlertDto::srcIp,
+                10
+        );
     }
+
+    private CountListResponse aggregateAlerts(
+            int lastHours,
+            int minLevel,
+            Function<AlertDto, String> classifier,
+            int limit
+    ) {
+        AlertListResponse response = getRecentAlerts(lastHours, minLevel, 10000);
+
+        Map<String, Long> counts = new HashMap<>();
+
+        for (AlertDto alert : response.alerts()) {
+            String label = normalizeLabel(classifier.apply(alert));
+            counts.put(label, counts.getOrDefault(label, 0L) + 1);
+        }
+
+        List<CountDto> data = counts.entrySet()
+                .stream()
+                .sorted((a, b) -> Long.compare(b.getValue(), a.getValue()))
+                .limit(limit)
+                .map(entry -> new CountDto(entry.getKey(), entry.getValue()))
+                .toList();
+
+        return new CountListResponse(true, data);
+    }
+
+    private String normalizeLabel(String value) {
+        if (value == null || value.isBlank() || "-".equals(value)) {
+            return "Não informado";
+        }
+
+        return value;
+    }    
 
     private CountListResponse termsAggregation(String field, String aggregationName, int lastHours, int size) {
         ObjectNode query = objectMapper.createObjectNode();

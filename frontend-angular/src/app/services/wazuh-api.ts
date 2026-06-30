@@ -28,23 +28,35 @@ export class WazuhApiService {
     return this.http.get<AlertListResponse>(`${this.apiUrl}/alerts`, { params });
   }
 
-  getAlertsBySeverity(lastHours = 24): Observable<CountListResponse> {
-    const params = new HttpParams().set('lastHours', String(lastHours));
+  getAlertsBySeverity(lastHours = 24, minLevel = 0): Observable<CountListResponse> {
+    const params = new HttpParams()
+      .set('lastHours', String(lastHours))
+      .set('minLevel', String(minLevel));
+
     return this.http.get<CountListResponse>(`${this.apiUrl}/alerts/severity`, { params });
   }
 
-  getTopRules(lastHours = 24): Observable<CountListResponse> {
-    const params = new HttpParams().set('lastHours', String(lastHours));
+  getTopRules(lastHours = 24, minLevel = 0): Observable<CountListResponse> {
+    const params = new HttpParams()
+      .set('lastHours', String(lastHours))
+      .set('minLevel', String(minLevel));
+
     return this.http.get<CountListResponse>(`${this.apiUrl}/alerts/top-rules`, { params });
   }
 
-  getAlertsByAgent(lastHours = 24): Observable<CountListResponse> {
-    const params = new HttpParams().set('lastHours', String(lastHours));
+  getAlertsByAgent(lastHours = 24, minLevel = 0): Observable<CountListResponse> {
+    const params = new HttpParams()
+      .set('lastHours', String(lastHours))
+      .set('minLevel', String(minLevel));
+
     return this.http.get<CountListResponse>(`${this.apiUrl}/alerts/agents`, { params });
   }
 
-  getTopSourceIps(lastHours = 24): Observable<CountListResponse> {
-    const params = new HttpParams().set('lastHours', String(lastHours));
+  getTopSourceIps(lastHours = 24, minLevel = 0): Observable<CountListResponse> {
+    const params = new HttpParams()
+      .set('lastHours', String(lastHours))
+      .set('minLevel', String(minLevel));
+
     return this.http.get<CountListResponse>(`${this.apiUrl}/alerts/source-ips`, { params });
   }
 }

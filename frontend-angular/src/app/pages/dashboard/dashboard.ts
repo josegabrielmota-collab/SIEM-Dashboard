@@ -33,7 +33,6 @@ export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
 
   private observer: IntersectionObserver | null = null;
 
-  // Circumference of the donut ring: 2 * PI * r = 2 * 3.14159 * 72 ≈ 452.4
   private readonly CIRC = 452.4;
 
   constructor(
@@ -90,18 +89,18 @@ export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
       alerts:    this.wazuhApi.getAlerts(this.lastHours, this.minLevel, this.size).pipe(
                    catchError(() => of({ ok: false, total: 0, alerts: [] })),
                  ),
-      severity:  this.wazuhApi.getAlertsBySeverity(this.lastHours).pipe(
-                   catchError(() => of({ ok: false, data: [] })),
-                 ),
-      topRules:  this.wazuhApi.getTopRules(this.lastHours).pipe(
-                   catchError(() => of({ ok: false, data: [] })),
-                 ),
-      agents:    this.wazuhApi.getAlertsByAgent(this.lastHours).pipe(
-                   catchError(() => of({ ok: false, data: [] })),
-                 ),
-      sourceIps: this.wazuhApi.getTopSourceIps(this.lastHours).pipe(
-                   catchError(() => of({ ok: false, data: [] })),
-                 ),
+      severity:  this.wazuhApi.getAlertsBySeverity(this.lastHours, this.minLevel).pipe(
+                  catchError(() => of({ ok: false, data: [] })),
+                ),
+      topRules:  this.wazuhApi.getTopRules(this.lastHours, this.minLevel).pipe(
+                  catchError(() => of({ ok: false, data: [] })),
+                ),
+      agents:    this.wazuhApi.getAlertsByAgent(this.lastHours, this.minLevel).pipe(
+                  catchError(() => of({ ok: false, data: [] })),
+                ),
+      sourceIps: this.wazuhApi.getTopSourceIps(this.lastHours, this.minLevel).pipe(
+                  catchError(() => of({ ok: false, data: [] })),
+                ),
     }).subscribe({
       next: (result) => {
         this.backendOnline = Boolean(result.health?.ok);

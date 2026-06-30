@@ -54,29 +54,33 @@ public class WazuhController {
 
     @GetMapping("/alerts/severity")
     public CountListResponse alertsBySeverity(
-            @RequestParam(defaultValue = "24") @Min(1) @Max(720) int lastHours
+            @RequestParam(defaultValue = "24") @Min(1) @Max(720) int lastHours,
+            @RequestParam(defaultValue = "0") @Min(0) @Max(16) int minLevel
     ) {
-        return wazuhService.getAlertsBySeverity(lastHours);
+        return wazuhService.getAlertsBySeverity(lastHours, minLevel);
     }
 
     @GetMapping("/alerts/top-rules")
     public CountListResponse topRules(
-            @RequestParam(defaultValue = "24") @Min(1) @Max(720) int lastHours
+            @RequestParam(defaultValue = "24") @Min(1) @Max(720) int lastHours,
+            @RequestParam(defaultValue = "0") @Min(0) @Max(16) int minLevel
     ) {
-        return wazuhService.getTopRules(lastHours);
+        return wazuhService.getTopRules(lastHours, minLevel);
     }
 
     @GetMapping("/alerts/agents")
     public CountListResponse alertsByAgent(
-            @RequestParam(defaultValue = "24") @Min(1) @Max(720) int lastHours
+            @RequestParam(defaultValue = "24") @Min(1) @Max(720) int lastHours,
+            @RequestParam(defaultValue = "0") @Min(0) @Max(16) int minLevel
     ) {
-        return wazuhService.getAlertsByAgent(lastHours);
+        return wazuhService.getAlertsByAgent(lastHours, minLevel);
     }
 
     @GetMapping("/alerts/source-ips")
     public CountListResponse topSourceIps(
-            @RequestParam(defaultValue = "24") @Min(1) @Max(720) int lastHours
+            @RequestParam(defaultValue = "24") @Min(1) @Max(720) int lastHours,
+            @RequestParam(defaultValue = "0") @Min(0) @Max(16) int minLevel
     ) {
-        return wazuhService.getTopSourceIps(lastHours);
+        return wazuhService.getTopSourceIps(lastHours, minLevel);
     }
 }
